@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "litc",
+  "version": "${version}",
+  "name": "LostInTheComplex",
+  "description": "A Mod that adds some liminal spaces into the game.",
+  "authors": [],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "icon": "assets/litc/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "cn.crtlprototypestudios.litc.client.LostInTheComplexClient"
+    ],
+    "main": [
+      "cn.crtlprototypestudios.litc.LostInTheComplex"
+    ]
+  },
+  "mixins": [
+    "litc.mixins.json",
+    {
+      "config": "litc.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
