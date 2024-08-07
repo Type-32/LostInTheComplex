@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column_mirrored",
+  "textures": {
+    "end": "litc:block/carpeted_floor_top",
+    "side": "minecraft:block/carpeted_floor"
+  }
+}

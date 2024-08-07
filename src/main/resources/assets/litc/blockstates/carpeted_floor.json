@@ -1,0 +1,62 @@
+{
+  "variants": {
+    "axis=x": [
+      {
+        "model": "litc:block/carpeted_floor",
+        "x": 90,
+        "y": 90
+      },
+      {
+        "model": "litc:block/carpeted_floor_mirrored",
+        "x": 90,
+        "y": 90
+      },
+      {
+        "model": "litc:block/carpeted_floor",
+        "x": 90,
+        "y": 90
+      },
+      {
+        "model": "litc:block/carpeted_floor_mirrored",
+        "x": 90,
+        "y": 90
+      }
+    ],
+    "axis=y": [
+      {
+        "model": "litc:block/carpeted_floor"
+      },
+      {
+        "model": "litc:block/carpeted_floor_mirrored"
+      },
+      {
+        "model": "litc:block/carpeted_floor",
+        "y": 180
+      },
+      {
+        "model": "litc:block/carpeted_floor_mirrored",
+        "y": 180
+      }
+    ],
+    "axis=z": [
+      {
+        "model": "litc:block/carpeted_floor",
+        "x": 90
+      },
+      {
+        "model": "litc:block/carpeted_floor_mirrored",
+        "x": 90
+      },
+      {
+        "model": "litc:block/carpeted_floor",
+        "x": 90,
+        "y": 180
+      },
+      {
+        "model": "litc:block/carpeted_floor_mirrored",
+        "x": 90,
+        "y": 180
+      }
+    ]
+  }
+}
