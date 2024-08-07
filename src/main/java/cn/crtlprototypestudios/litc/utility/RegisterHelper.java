@@ -4,7 +4,6 @@ import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.fluid.FlowableFluid;
@@ -15,19 +14,19 @@ import net.minecraft.registry.Registry;
 import net.minecraft.resource.featuretoggle.FeatureSet;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerType;
-import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class RegisterHelper {
-    private static final Logger LOGGER = LoggerFactory.getLogger(RegisterHelper.class);
-    private static final List<Item> REGISTERED_ITEMS = new ArrayList<>();
+    public static final Logger LOGGER = LoggerFactory.getLogger(RegisterHelper.class);
+    private static final Map<Registry<?>, List<RegistryEntry<?>>> DEFERRED_REGISTERS = new HashMap<>();
     private static Item.Settings DEFAULT_ITEM_SETTINGS = new Item.Settings();
+    private static AbstractBlock.Settings DEFAULT_ABSTRACT_BLOCK_SETTINGS = AbstractBlock.Settings.create();
 
     // Item registration
     public static class ItemBuilder {
@@ -44,12 +43,12 @@ public class RegisterHelper {
             return this;
         }
 
-        public Item build() {
-            return registerItem(name, new Item(settings));
+        public RegistryEntry<Item> build() {
+            return register(Registries.ITEM, name, () -> new Item(settings));
         }
 
-        public <T extends Item> T build(Function<Item.Settings, T> factory) {
-            return registerItem(name, factory.apply(settings));
+        public <T extends Item> RegistryEntry<T> build(Function<Item.Settings, T> factory) {
+            return register(Registries.ITEM, name, () -> factory.apply(settings));
         }
     }
 
@@ -57,25 +56,17 @@ public class RegisterHelper {
         return new ItemBuilder(name);
     }
 
-    private static <T extends Item> T registerItem(String name, T item) {
-        T registeredItem = Registry.register(Registries.ITEM, Reference.id(name), item);
-        REGISTERED_ITEMS.add(registeredItem);
-        LOGGER.info("Registered item: {}", Reference.id(name));
-        return registeredItem;
-    }
-
     // Block registration
     public static class BlockBuilder {
         private final String name;
-        private final Block block;
         private AbstractBlock.Settings blockSettings;
         private Item.Settings itemSettings;
         private boolean registerItem = false;
 
-        private BlockBuilder(String name, Block block) {
+        private BlockBuilder(String name) {
             this.name = name;
-            this.block = block;
             this.itemSettings = DEFAULT_ITEM_SETTINGS;
+            this.blockSettings = DEFAULT_ABSTRACT_BLOCK_SETTINGS;
         }
 
         public BlockBuilder item(Item.Settings settings) {
@@ -90,7 +81,7 @@ public class RegisterHelper {
             return this;
         }
 
-        public BlockBuilder item(){
+        public BlockBuilder item() {
             registerItem = true;
             this.itemSettings = DEFAULT_ITEM_SETTINGS;
             return this;
@@ -101,72 +92,64 @@ public class RegisterHelper {
             return this;
         }
 
-        public BlockBuilder settings(Block copyBlock){
+        public BlockBuilder settings(Block copyBlock) {
             this.blockSettings = AbstractBlock.Settings.copy(copyBlock);
             return this;
         }
 
-        public Block build() {
-            return registerBlock(name, new Block(blockSettings), itemSettings, registerItem);
+        public RegistryEntry<Block> build() {
+            RegistryEntry<Block> blockEntry = register(Registries.BLOCK, name, () -> new Block(blockSettings));
+            if (registerItem) {
+                register(Registries.ITEM, name, () -> new BlockItem(blockEntry.get(), itemSettings));
+            }
+            return blockEntry;
         }
 
-        public <T extends Block> T build(Function<AbstractBlock.Settings, T> factory) {
-            return registerBlock(name, factory.apply(blockSettings), itemSettings, registerItem);
+        public <T extends Block> RegistryEntry<T> build(Function<AbstractBlock.Settings, T> factory) {
+            RegistryEntry<T> blockEntry = register(Registries.BLOCK, name, () -> factory.apply(blockSettings));
+            if (registerItem) {
+                register(Registries.ITEM, name, () -> new BlockItem(blockEntry.get(), itemSettings));
+            }
+            return blockEntry;
         }
     }
 
-    public static BlockBuilder block(String name, Block block) {
-        return new BlockBuilder(name, block);
-    }
-
-    public static BlockBuilder block(String name){
-        return block(name, new Block(AbstractBlock.Settings.create()));
-    }
-
-    private static <T extends Block> T registerBlock(String name, T block, Item.Settings itemSettings, boolean registerItem) {
-        T registeredBlock = Registry.register(Registries.BLOCK, Reference.id(name), block);
-        if(registerItem) registerItem(name, new BlockItem(registeredBlock, itemSettings));
-        LOGGER.info("Registered block: {}", Reference.id(name));
-        return registeredBlock;
+    public static BlockBuilder block(String name) {
+        return new BlockBuilder(name);
     }
 
     // Block Entity registration
-    public static <T extends BlockEntity> BlockEntityType<T> blockEntity(String name, BlockEntityType.Builder<T> builder) {
-        BlockEntityType<T> type = Registry.register(Registries.BLOCK_ENTITY_TYPE, Reference.id(name), builder.build(null));
-        LOGGER.info("Registered block entity: {}", Reference.id(name));
-        return type;
+    public static <T extends BlockEntity> RegistryEntry<BlockEntityType<T>> blockEntity(String name, BlockEntityType.Builder<T> builder) {
+        return register(Registries.BLOCK_ENTITY_TYPE, name, () -> builder.build(null));
     }
 
     // Entity registration
-    public static <T extends Entity> EntityType<T> entity(String name, EntityType.Builder<T> builder) {
-        EntityType<T> type = Registry.register(Registries.ENTITY_TYPE, Reference.id(name), builder.build(name));
-        LOGGER.info("Registered entity: {}", Reference.id(name));
-        return type;
+    public static <T extends Entity> RegistryEntry<EntityType<T>> entity(String name, EntityType.Builder<T> builder) {
+        return register(Registries.ENTITY_TYPE, name, () -> builder.build(name));
     }
 
     // Fluid registration
-    public static <T extends FlowableFluid> T fluid(String name, T fluid) {
-        T registeredFluid = Registry.register(Registries.FLUID, Reference.id(name), fluid);
-        LOGGER.info("Registered fluid: {}", Reference.id(name));
-        return registeredFluid;
+    public static <T extends FlowableFluid> RegistryEntry<T> fluid(String name, Supplier<T> fluidSupplier) {
+        return register(Registries.FLUID, name, fluidSupplier);
     }
 
     // Screen Handler (Menu) registration
-    public static <T extends ScreenHandler> ScreenHandlerType<T> screenHandler(String name, ScreenHandlerType.Factory<T> factory, FeatureSet featureSet) {
-        ScreenHandlerType<T> type = Registry.register(Registries.SCREEN_HANDLER, Reference.id(name), new ScreenHandlerType<>(factory, featureSet));
-        LOGGER.info("Registered screen handler: {}", Reference.id(name));
-        return type;
+    public static <T extends ScreenHandler> RegistryEntry<ScreenHandlerType<T>> screenHandler(String name, ScreenHandlerType.Factory<T> factory, FeatureSet featureSet) {
+        return register(Registries.SCREEN_HANDLER, name, () -> new ScreenHandlerType<>(factory, featureSet));
     }
 
-    // Enchantment registration
-//    public static <T extends Enchantment> T enchantment(String name, T enchantment) {
-//        T registeredEnchantment = Registry.register(Registries.ENCHANTMENT, Reference.id(name), enchantment);
-//        LOGGER.info("Registered enchantment: {}", Reference.id(name));
-//        return registeredEnchantment;
-//    }
+    private static <T> RegistryEntry<T> register(Registry<? super T> registry, String name, Supplier<T> supplier) {
+        RegistryEntry<T> entry = new RegistryEntry<>(registry, name, supplier);
+        DEFERRED_REGISTERS.computeIfAbsent(registry, k -> new ArrayList<>()).add(entry);
+        return entry;
+    }
 
-    // Get all registered items
-    public static List<Item> getRegisteredItems() {
-        return new ArrayList<>(REGISTERED_ITEMS);
+    public static void registerAll() {
+        for (List<RegistryEntry<?>> entries : DEFERRED_REGISTERS.values()) {
+            for (RegistryEntry<?> entry : entries) {
+                entry.get(); // This triggers the actual registration
+            }
+        }
+        DEFERRED_REGISTERS.clear();
     }
 }
