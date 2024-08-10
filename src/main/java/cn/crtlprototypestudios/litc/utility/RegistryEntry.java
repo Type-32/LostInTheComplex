@@ -17,15 +17,28 @@ public class RegistryEntry<T> implements Supplier<T> {
         this.supplier = supplier;
     }
 
+    /**
+     * Retrieves the stored value for this registry entry.
+     *
+     * If the value is null, this method registers a new value with the registry using the supplied supplier function.
+     * The registered value is then stored and returned.
+     *
+     * @return the stored value for this registry entry
+     */
     @Override
     public T get() {
         if (value == null) {
             value = Registry.register(registry, Reference.id(name), supplier.get());
-            RegisterHelper.LOGGER.info("Registered {} to {}: {}", value.getClass().getSimpleName(), registry.getKey().getValue(), Reference.id(name));
+            RegistryHelper.LOGGER.info("Registered {} to {}: {}", value.getClass().getSimpleName(), registry.getKey().getValue(), Reference.id(name));
         }
         return value;
     }
 
+    /**
+     * Retrieves the identifier of this RegistryEntry.
+     *
+     * @return the identifier of this RegistryEntry
+     */
     public Identifier getId() {
         return Reference.id(name);
     }
