@@ -1,19 +1,29 @@
 package cn.crtlprototypestudios.litc.utility;
 
+import com.mojang.serialization.Codec;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.component.ComponentType;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.FoodComponent;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.fluid.FlowableFluid;
+import net.minecraft.item.ArmorItem;
+import net.minecraft.item.ArmorMaterial;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
+import net.minecraft.recipe.Ingredient;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.resource.featuretoggle.FeatureSet;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerType;
+import net.minecraft.sound.SoundEvent;
+import net.minecraft.sound.SoundEvents;
+import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +37,7 @@ public class RegistryHelper {
     private static final Map<Registry<?>, List<RegistryEntry<?>>> DEFERRED_REGISTERS = new HashMap<>();
     private static Item.Settings DEFAULT_ITEM_SETTINGS = new Item.Settings();
     private static AbstractBlock.Settings DEFAULT_ABSTRACT_BLOCK_SETTINGS = AbstractBlock.Settings.create();
+    private static String MOD_ID;
 
     // Item registration
     public static class ItemBuilder {
@@ -173,6 +184,19 @@ public class RegistryHelper {
         }
     }
 
+    public static class FoodComponentBuilder {
+        private final FoodComponent.Builder builder = new FoodComponent.Builder();
+
+        public FoodComponentBuilder settings(Consumer<FoodComponent.Builder> settingsModifier) {
+            settingsModifier.accept(this.builder);
+            return this;
+        }
+
+        public FoodComponent build() {
+            return builder.build();
+        }
+    }
+
     /**
      * Creates a new item builder with the specified name.
      *
@@ -270,7 +294,8 @@ public class RegistryHelper {
      *
      * The method does not return anything.
      */
-    public static void registerAll() {
+    public static void registerAll(String modid) {
+        MOD_ID = modid;
         for (List<RegistryEntry<?>> entries : DEFERRED_REGISTERS.values()) {
             for (RegistryEntry<?> entry : entries) {
                 entry.get(); // This triggers the actual registration
