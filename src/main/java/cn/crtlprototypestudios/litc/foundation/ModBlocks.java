@@ -11,7 +11,7 @@ public class ModBlocks {
             .item()
             .build(PillarBlock::new);
 
-    public static void load(){
+    public static void register(){
 
     }
 }
