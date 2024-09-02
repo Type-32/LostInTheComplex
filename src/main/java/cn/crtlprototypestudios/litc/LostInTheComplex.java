@@ -1,6 +1,7 @@
 package cn.crtlprototypestudios.litc;
 
 import cn.crtlprototypestudios.litc.foundation.ModBlocks;
+import cn.crtlprototypestudios.litc.foundation.ModCodecs;
 import cn.crtlprototypestudios.litc.foundation.ModComponents;
 import cn.crtlprototypestudios.litc.foundation.ModItems;
 import cn.crtlprototypestudios.litc.utility.Reference;
@@ -15,6 +16,7 @@ public class LostInTheComplex implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        ModCodecs.register();
         ModComponents.register();
         ModBlocks.register();
         ModItems.register();

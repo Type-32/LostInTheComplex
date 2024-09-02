@@ -6,24 +6,17 @@ import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.component.ComponentType;
-import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.FoodComponent;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.fluid.FlowableFluid;
-import net.minecraft.item.ArmorItem;
-import net.minecraft.item.ArmorMaterial;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
-import net.minecraft.recipe.Ingredient;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.resource.featuretoggle.FeatureSet;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerType;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -197,6 +190,17 @@ public class RegistryHelper {
         }
     }
 
+    public static class SimpleComponentBuilder {
+        private final String name;
+        public SimpleComponentBuilder(String name) {
+            this.name = name;
+        }
+
+        public <T> RegistryEntry<ComponentType<T>> build(Codec<T> codec){
+            return register(Registries.DATA_COMPONENT_TYPE, name, () -> ComponentType.<T>builder().codec(codec).build());
+        }
+    }
+
     /**
      * Creates a new item builder with the specified name.
      *
@@ -268,6 +272,10 @@ public class RegistryHelper {
     // Screen Handler (Menu) registration
     public static <T extends ScreenHandler> RegistryEntry<ScreenHandlerType<T>> screenHandler(String name, ScreenHandlerType.Factory<T> factory, FeatureSet featureSet) {
         return register(Registries.SCREEN_HANDLER, name, () -> new ScreenHandlerType<>(factory, featureSet));
+    }
+
+    public static SimpleComponentBuilder simpleComponent(String name){
+        return new SimpleComponentBuilder(name);
     }
 
     /**
