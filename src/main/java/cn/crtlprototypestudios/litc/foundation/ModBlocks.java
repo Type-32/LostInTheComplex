@@ -6,6 +6,7 @@ import net.minecraft.block.*;
 import net.minecraft.block.enums.NoteBlockInstrument;
 
 public class ModBlocks {
+    // Blocks
     public static final RegistryEntry<Block> CARPETED_FLOOR = RegistryHelper.block("carpeted_floor")
             .settings(settings -> settings.resistance(3.0F).hardness(10.0F).requiresTool().instrument(NoteBlockInstrument.GUITAR))
             .item()

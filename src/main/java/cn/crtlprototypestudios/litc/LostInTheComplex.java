@@ -1,9 +1,6 @@
 package cn.crtlprototypestudios.litc;
 
-import cn.crtlprototypestudios.litc.foundation.ModBlocks;
-import cn.crtlprototypestudios.litc.foundation.ModCodecs;
-import cn.crtlprototypestudios.litc.foundation.ModComponents;
-import cn.crtlprototypestudios.litc.foundation.ModItems;
+import cn.crtlprototypestudios.litc.foundation.*;
 import cn.crtlprototypestudios.litc.utility.Reference;
 import cn.crtlprototypestudios.litc.utility.RegistryHelper;
 import net.fabricmc.api.ModInitializer;
@@ -19,6 +16,7 @@ public class LostInTheComplex implements ModInitializer {
         ModCodecs.register();
         ModComponents.register();
         ModBlocks.register();
+        ModFluids.register();
         ModItems.register();
 
         RegistryHelper.registerAll(Reference.MOD_ID);

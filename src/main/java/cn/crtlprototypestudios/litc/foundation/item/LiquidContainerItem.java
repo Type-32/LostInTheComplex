@@ -6,6 +6,7 @@ import net.minecraft.advancement.criterion.Criteria;
 import net.minecraft.block.Blocks;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.PotionContentsComponent;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.player.PlayerEntity;
@@ -23,8 +24,17 @@ import net.minecraft.world.event.GameEvent;
 
 public class LiquidContainerItem extends PotionItem {
     private static final int ITEM_BAR_COLOR = MathHelper.packRgb(0.4F, 0.4F, 1.0F);
+    private static final LiquidContainerDataComponent DEFAULT_DATA_COMPONENT = new LiquidContainerDataComponent(0, 3, true, null);
+
     public LiquidContainerItem(Settings settings) {
         super(settings.rarity(Rarity.COMMON).maxCount(1));
+    }
+
+    @Override
+    public void inventoryTick(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
+        if (stack.get(ModComponents.LIQUID_CONTAINER_DATA_COMPONENT.get()) == null) {
+            stack.set(ModComponents.LIQUID_CONTAINER_DATA_COMPONENT.get(), DEFAULT_DATA_COMPONENT);
+        }
     }
 
     @Override

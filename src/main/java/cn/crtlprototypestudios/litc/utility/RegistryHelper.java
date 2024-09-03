@@ -3,6 +3,7 @@ package cn.crtlprototypestudios.litc.utility;
 import com.mojang.serialization.Codec;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
+import net.minecraft.block.FluidBlock;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.component.ComponentType;
@@ -10,6 +11,7 @@ import net.minecraft.component.type.FoodComponent;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.fluid.FlowableFluid;
+import net.minecraft.fluid.Fluid;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
@@ -21,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -80,10 +83,10 @@ public class RegistryHelper {
 
     // Block registration
     public static class BlockBuilder {
-        private final String name;
-        private AbstractBlock.Settings blockSettings;
-        private Item.Settings itemSettings;
-        private boolean registerItem = false;
+        protected final String name;
+        protected AbstractBlock.Settings blockSettings;
+        protected Item.Settings itemSettings;
+        protected boolean registerItem = false;
 
         private BlockBuilder(String name) {
             this.name = name;
@@ -177,6 +180,145 @@ public class RegistryHelper {
         }
     }
 
+    // Fluid Block registration
+    @Deprecated(forRemoval = true)
+    public static class FluidBlockBuilder {
+        protected final String name;
+        protected final FlowableFluid stillFluid;
+        protected AbstractBlock.Settings blockSettings;
+
+        private FluidBlockBuilder(String name, FlowableFluid stillFluid) {
+            this.name = name;
+            this.stillFluid = stillFluid;
+            this.blockSettings = DEFAULT_ABSTRACT_BLOCK_SETTINGS;
+        }
+
+        /**
+         * Sets the block settings using a consumer function.
+         *
+         * @param settingsModifier the consumer function that modifies the block settings
+         * @return the block builder with the block settings applied
+         */
+        public FluidBlockBuilder settings(Consumer<AbstractBlock.Settings> settingsModifier) {
+            settingsModifier.accept(this.blockSettings);
+            return this;
+        }
+
+        /**
+         * Sets the block settings by copying another block's settings.
+         *
+         * @param copyBlock the block to copy settings from
+         * @return the block builder with the copied block settings applied
+         */
+        public FluidBlockBuilder settings(Block copyBlock) {
+            this.blockSettings = AbstractBlock.Settings.copy(copyBlock);
+            return this;
+        }
+
+        /**
+         * Builds the block with the specified settings.
+         *
+         * @return the registry entry for the block
+         */
+        public RegistryEntry<FluidBlock> build() {
+            return register(Registries.BLOCK, name, () -> new FluidBlock(stillFluid, blockSettings));
+        }
+    }
+
+    // Fluid registration
+    public static class FluidBuilder<T extends Fluid> {
+        private final String name;
+        private final Supplier<T> baseFluidSupplier;
+        private Supplier<? extends Fluid> stillSupplier;
+        private Supplier<? extends Fluid> flowingSupplier;
+        private Supplier<? extends Item> bucketSupplier;
+        private BiFunction<T, AbstractBlock.Settings, ? extends Block> blockSupplier;
+        private boolean isVirtual = false;
+        protected AbstractBlock.Settings blockSettings;
+
+        private FluidBuilder(String name, Supplier<T> baseFluidSupplier) {
+            this.name = name;
+            this.baseFluidSupplier = baseFluidSupplier;
+        }
+
+        public FluidBuilder<T> still(Supplier<? extends Fluid> supplier) {
+            this.stillSupplier = supplier;
+            return this;
+        }
+
+        public FluidBuilder<T> flowing(Supplier<? extends Fluid> supplier) {
+            this.flowingSupplier = supplier;
+            return this;
+        }
+
+        public FluidBuilder<T> bucket(Supplier<? extends Item> supplier) {
+            this.bucketSupplier = supplier;
+            return this;
+        }
+
+        public FluidBuilder<T> block(BiFunction<T, AbstractBlock.Settings, FluidBlock> supplier) {
+            this.blockSupplier = supplier;
+            return this;
+        }
+
+        /**
+         * Sets the block settings using a consumer function.
+         *
+         * @param settingsModifier the consumer function that modifies the block settings
+         * @return the block builder with the block settings applied
+         */
+        public FluidBuilder<T> blockSettings(Consumer<AbstractBlock.Settings> settingsModifier) {
+            settingsModifier.accept(this.blockSettings);
+            return this;
+        }
+
+        /**
+         * Sets the block settings by copying another block's settings.
+         *
+         * @param copyBlock the block to copy settings from
+         * @return the block builder with the copied block settings applied
+         */
+        public FluidBuilder<T> blockSettings(Block copyBlock) {
+            this.blockSettings = AbstractBlock.Settings.copy(copyBlock);
+            return this;
+        }
+
+        public FluidBuilder<T> virtual() {
+            this.isVirtual = true;
+            return this;
+        }
+
+        public FluidEntry<T> build(){
+            if (!isVirtual && (stillSupplier == null || flowingSupplier == null || blockSupplier == null)) {
+                throw new RuntimeException("Cannot initialize non-virtual fluid without still/flowing/block suppliers.");
+            }
+
+            RegistryEntry<T> baseFluidEntry = register(Registries.FLUID, name, baseFluidSupplier);
+            RegistryEntry<? extends Fluid> stillFluidEntry = null;
+            RegistryEntry<? extends Fluid> flowingFluidEntry = null;
+            RegistryEntry<? extends Block> blockEntry = null;
+            RegistryEntry<? extends Item> bucketEntry = null;
+
+            if (!isVirtual) {
+                if (stillSupplier != null) {
+                    stillFluidEntry = register(Registries.FLUID, "still_" + name, stillSupplier);
+                }
+                if (flowingSupplier != null) {
+                    flowingFluidEntry = register(Registries.FLUID, "flowing_" + name, flowingSupplier);
+                }
+                if (blockSupplier != null) {
+                    blockEntry = register(Registries.BLOCK, name + "_block", () -> blockSupplier.apply(baseFluidEntry.get(), blockSettings));
+                }
+            }
+
+            if (bucketSupplier != null) {
+                bucketEntry = register(Registries.ITEM, name + "_bucket", bucketSupplier);
+            }
+
+            return new FluidEntry<>(baseFluidEntry, stillFluidEntry, flowingFluidEntry, bucketEntry, blockEntry);
+        }
+    }
+
     public static class FoodComponentBuilder {
         private final FoodComponent.Builder builder = new FoodComponent.Builder();
 
@@ -192,6 +334,7 @@ public class RegistryHelper {
 
     public static class SimpleComponentBuilder {
         private final String name;
+
         public SimpleComponentBuilder(String name) {
             this.name = name;
         }
@@ -219,6 +362,18 @@ public class RegistryHelper {
      */
     public static BlockBuilder block(String name) {
         return new BlockBuilder(name);
+    }
+
+    /**
+     * Creates a new block builder with the specified name.
+     *
+     * @param name the name of the block
+     * @param stillFluidVariant The Still Fluid Variant of the Fluid block. Preferably.
+     * @return the new block builder
+     */
+    @Deprecated(forRemoval = true)
+    public static FluidBlockBuilder fluidBlock(String name, FlowableFluid stillFluidVariant) {
+        return new FluidBlockBuilder(name, stillFluidVariant);
     }
 
     // Block Entity registration
@@ -252,12 +407,12 @@ public class RegistryHelper {
      *
      * @param <T> the type of the fluid (must extend FlowableFluid)
      * @param name the name of the fluid
-     * @param fluidSupplier a supplier for creating instances of the fluid
-     * @return the registry entry for the fluid
+     * @param baseFluidSupplier a supplier for creating instances of the fluid
+     * @return Fluid Builder for the fluid
      */
     // Fluid registration
-    public static <T extends FlowableFluid> RegistryEntry<T> fluid(String name, Supplier<T> fluidSupplier) {
-        return register(Registries.FLUID, name, fluidSupplier);
+    public static <T extends Fluid> FluidBuilder<T> fluid(String name, Supplier<T> baseFluidSupplier) {
+        return new FluidBuilder<>(name, baseFluidSupplier);
     }
 
     /**
