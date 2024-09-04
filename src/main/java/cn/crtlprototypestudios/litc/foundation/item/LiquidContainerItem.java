@@ -3,13 +3,16 @@ package cn.crtlprototypestudios.litc.foundation.item;
 import cn.crtlprototypestudios.litc.foundation.ModComponents;
 import cn.crtlprototypestudios.litc.foundation.component.LiquidContainerDataComponent;
 import net.minecraft.advancement.criterion.Criteria;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.FluidDrainable;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.PotionContentsComponent;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.*;
 import net.minecraft.registry.Registries;
@@ -64,13 +67,36 @@ public class LiquidContainerItem extends PotionItem {
 
     @Override
     public ActionResult useOnBlock(ItemUsageContext context) {
-        if (context.getWorld().getFluidState(context.getBlockPos()).isIn(FluidTags.WATER)){
+        LiquidContainerDataComponent comp = context.getStack().getComponents().get(ModComponents.LIQUID_CONTAINER_DATA_COMPONENT.get());
+        BlockState targetBlockState = context.getWorld().getBlockState(context.getBlockPos());
+        FluidState targetFluidState = context.getWorld().getFluidState(context.getBlockPos());
+        ItemStack itemStack = context.getStack();
 
-        } else if (context.getWorld().getBlockState(context.getBlockPos()).getBlock().equals(Blocks.WATER_CAULDRON)){
-
+        if (!itemStack.contains(ModComponents.LIQUID_CONTAINER_DATA_COMPONENT.get())) {
+            itemStack.set(ModComponents.LIQUID_CONTAINER_DATA_COMPONENT.get(), DEFAULT_DATA_COMPONENT);
+            if(!itemStack.contains(ModComponents.LIQUID_CONTAINER_DATA_COMPONENT.get()))
+                return ActionResult.PASS;
         }
 
-        return ActionResult.FAIL;
+        if(!comp.replenishable()) // Return if the container item is not replenishable
+            return ActionResult.PASS;
+
+        if(comp.liquid() == null) {
+            itemStack.set(ModComponents.LIQUID_CONTAINER_DATA_COMPONENT.get(),
+                    new LiquidContainerDataComponent(comp.amount() + 1, comp.max(), comp.replenishable(),
+                            Registries.FLUID.getId(targetFluidState.getFluid().getDefaultState().getFluid())));
+            return ActionResult.SUCCESS;
+        } else if (targetFluidState.getFluid().equals(Registries.FLUID.get(comp.liquid()))){
+            if(targetBlockState instanceof FluidDrainable){
+                ((FluidDrainable) targetBlockState).tryDrainFluid(context.getPlayer(), context.getWorld(), context.getBlockPos(), targetBlockState);
+            }
+
+            context.getStack().set(ModComponents.LIQUID_CONTAINER_DATA_COMPONENT.get(),
+                    new LiquidContainerDataComponent(comp.amount() + 1, comp.max(), comp.replenishable(), comp.liquid()));
+            return ActionResult.SUCCESS;
+        }
+
+        return ActionResult.PASS;
     }
 
     @Override

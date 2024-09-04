@@ -5,6 +5,7 @@ import cn.crtlprototypestudios.litc.foundation.item.LiquidContainerItem;
 import cn.crtlprototypestudios.litc.utility.RegistryHelper;
 import cn.crtlprototypestudios.litc.utility.RegistryEntry;
 import net.minecraft.item.Item;
+import net.minecraft.registry.Registries;
 import net.minecraft.util.Rarity;
 
 public class ModItems {
@@ -19,6 +20,11 @@ public class ModItems {
     public static final RegistryEntry<LiquidContainerItem> CANTEEN = RegistryHelper.item("canteen")
             .settings(settings -> settings
                     .component(ModComponents.LIQUID_CONTAINER_DATA_COMPONENT.get(), new LiquidContainerDataComponent(0, 3, true, null)))
+            .build(LiquidContainerItem::new);
+
+    public static final RegistryEntry<LiquidContainerItem> ALMOND_WATER_BOTTLE = RegistryHelper.item("almond_water_bottle")
+            .settings(settings -> settings
+                    .component(ModComponents.LIQUID_CONTAINER_DATA_COMPONENT.get(), new LiquidContainerDataComponent(0, 2, false, Registries.FLUID.getId(ModFluids.ALMOND_WATER.getFluid()))))
             .build(LiquidContainerItem::new);
 
     public static void register(){

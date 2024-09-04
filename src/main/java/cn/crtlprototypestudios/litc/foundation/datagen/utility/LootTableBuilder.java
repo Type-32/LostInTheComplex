@@ -1,11 +1,16 @@
 package cn.crtlprototypestudios.litc.foundation.datagen.utility;
 
+import net.minecraft.component.ComponentType;
 import net.minecraft.loot.LootTable;
 import net.minecraft.loot.LootPool;
+import net.minecraft.loot.condition.RandomChanceLootCondition;
 import net.minecraft.loot.entry.ItemEntry;
 import net.minecraft.loot.entry.LeafEntry;
 import net.minecraft.loot.entry.LootPoolEntry;
+import net.minecraft.loot.function.SetComponentsLootFunction;
+import net.minecraft.loot.function.SetCountLootFunction;
 import net.minecraft.loot.provider.number.ConstantLootNumberProvider;
+import net.minecraft.loot.provider.number.LootNumberProvider;
 import net.minecraft.loot.provider.number.UniformLootNumberProvider;
 import net.minecraft.loot.context.LootContext;
 import net.minecraft.loot.function.LootFunction;
@@ -135,7 +140,24 @@ public class LootTableBuilder {
             return this;
         }
 
+        public ItemEntryBuilder setCount(int min, int max) {
+            return addFunction(SetCountLootFunction.builder(UniformLootNumberProvider.create(min, max)));
+        }
+
+        public ItemEntryBuilder setCount(int fixed) {
+            return addFunction(SetCountLootFunction.builder(ConstantLootNumberProvider.create(fixed)));
+        }
+
+        public <T> ItemEntryBuilder setComponent(ComponentType<T> type, T component){
+            return addFunction(SetComponentsLootFunction.builder(type, component));
+        }
+
+        public ItemEntryBuilder setRandomChance(float chance) {
+            return addCondition(RandomChanceLootCondition.builder(chance));
+        }
+
         public PoolBuilder endItem() {
+//            parent.base.with(base);
             return parent;
         }
 
