@@ -11,7 +11,7 @@ public class RegistryEntry<T> implements Supplier<T> {
     private final Supplier<T> supplier;
     private T value;
 
-    RegistryEntry(Registry<? super T> registry, String name, Supplier<T> supplier) {
+    protected RegistryEntry(Registry<? super T> registry, String name, Supplier<T> supplier) {
         this.registry = registry;
         this.name = name;
         this.supplier = supplier;
@@ -28,8 +28,7 @@ public class RegistryEntry<T> implements Supplier<T> {
     @Override
     public T get() {
         if (value == null) {
-            value = Registry.register(registry, Reference.id(name), supplier.get());
-            RegistryHelper.LOGGER.info("Registered {} to {}: {}", value.getClass().getSimpleName(), registry.getKey().getValue(), Reference.id(name));
+            value = Registry.register(registry, RegistryHelper.id(name), supplier.get());
         }
         return value;
     }

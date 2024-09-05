@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "litc:block/wooden_wallpaper_wall"
+  }
+}

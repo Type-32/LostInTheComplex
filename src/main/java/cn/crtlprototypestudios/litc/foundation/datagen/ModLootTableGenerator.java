@@ -1,9 +1,7 @@
 package cn.crtlprototypestudios.litc.foundation.datagen;
 
-import cn.crtlprototypestudios.litc.foundation.ModBlocks;
-import cn.crtlprototypestudios.litc.foundation.ModComponents;
-import cn.crtlprototypestudios.litc.foundation.ModFluids;
-import cn.crtlprototypestudios.litc.foundation.ModItems;
+import cn.crtlprototypestudios.litc.LostInTheComplex;
+import cn.crtlprototypestudios.litc.foundation.*;
 import cn.crtlprototypestudios.litc.foundation.component.LiquidContainerDataComponent;
 import cn.crtlprototypestudios.litc.foundation.datagen.utility.LootTableBuilder;
 import com.mojang.authlib.minecraft.client.MinecraftClient;
@@ -40,9 +38,13 @@ public class ModLootTableGenerator extends FabricBlockLootTableProvider {
 
     @Override
     public void generate() {
-        addDrop(ModBlocks.YELLOW_CARPETED_FLOOR.get());
-        addDrop(ModBlocks.WOODEN_WALLPAPER_WALL.get(), simpleRangeItemEntry(ModItems.PLANKS.get(), 1, 4).get());
-        addDrop(ModBlocks.HUMID_YELLOW_CARPETED_FLOOR.get(), exampleCrateLoot().get());
+        LostInTheComplex.LOGGER.info("Datagen Generating...");
+        addDrop(ModBlocks.YELLOW_CARPETED_FLOOR.get()); // Drop nothing, due to it's copying Bedrock block settings
+        addDrop(ModBlocks.WOODEN_WALLPAPER_WALL.get(), ModLootTables.WOODEN_WALLPAPER_WALL_LOOT.get());
+        addDrop(ModBlocks.CONCRETE_WALLPAPER_WALL.get(), ModLootTables.CONCRETE_WALLPAPER_WALL_LOOT.get());
+        addDrop(ModBlocks.HUMID_YELLOW_CARPETED_FLOOR.get()); // Drops nothing, as it's copying carpeted floor settings
+        addDrop(ModBlocks.LOOT_CRATE_BLOCK.get(), ModLootTables.CRATE_BLOCK_LOOT.get());
+        LostInTheComplex.LOGGER.info("Datagen Generated.");
     }
 
     public LootTableBuilder simpleRangeItemEntry(Item item, int min, int max) {

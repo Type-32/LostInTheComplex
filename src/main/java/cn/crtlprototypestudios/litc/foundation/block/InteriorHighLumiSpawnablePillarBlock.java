@@ -1,7 +1,5 @@
-package cn.crtlprototypestudios.litc.foundation.block.special;
+package cn.crtlprototypestudios.litc.foundation.block;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
 import net.minecraft.block.PillarBlock;
 
 public class InteriorHighLumiSpawnablePillarBlock extends PillarBlock {

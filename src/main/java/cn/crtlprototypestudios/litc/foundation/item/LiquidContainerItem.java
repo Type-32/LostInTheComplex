@@ -157,12 +157,11 @@ public class LiquidContainerItem extends PotionItem {
                 if (!world.isClient) {
                     PotionContentsComponent potionContentsComponent = (PotionContentsComponent)stack.getOrDefault(DataComponentTypes.POTION_CONTENTS, PotionContentsComponent.DEFAULT);
                     potionContentsComponent.forEachEffect((effect) -> {
-                        if (((StatusEffect)effect.getEffectType().value()).isInstant()) {
-                            ((StatusEffect)effect.getEffectType().value()).applyInstantEffect(playerEntity, playerEntity, user, effect.getAmplifier(), 1.0);
+                        if (effect.getEffectType().value().isInstant()) {
+                            effect.getEffectType().value().applyInstantEffect(playerEntity, playerEntity, user, effect.getAmplifier(), 1.0);
                         } else {
                             user.addStatusEffect(effect);
                         }
-
                     });
                 }
 

@@ -13,6 +13,14 @@ public class ModItems {
             .settings(settings -> settings.maxCount(40).rarity(Rarity.COMMON))
             .build();
 
+    public static final RegistryEntry<Item> CONCRETE_RUBBLE = RegistryHelper.item("concrete_rubble")
+            .settings(settings -> settings.rarity(Rarity.COMMON))
+            .build();
+
+    public static final RegistryEntry<Item> TORN_WALLPAPER = RegistryHelper.item("torn_wallpaper")
+            .settings(settings -> settings.maxCount(72).rarity(Rarity.COMMON))
+            .build();
+
     public static final RegistryEntry<Item> CHOCOLATE_BAR = RegistryHelper.item("chocolate_bar")
             .settings(settings -> settings.food(ModComponents.CHOCOLATE_BAR_COMPONENT))
             .build();

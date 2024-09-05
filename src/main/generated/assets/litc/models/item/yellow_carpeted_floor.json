@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "litc:block/yellow_carpeted_floor"
+  }
+}

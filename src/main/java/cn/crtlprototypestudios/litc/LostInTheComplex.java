@@ -15,11 +15,14 @@ public class LostInTheComplex implements ModInitializer {
     public void onInitialize() {
         ModCodecs.register();
         ModComponents.register();
-        ModBlocks.register();
+        ModStats.register();
+        ModSoundEvents.register();
         ModFluids.register();
+        ModBlocks.register();
+        ModBlockEntities.register();
         ModItems.register();
 
-        RegistryHelper.registerAll(Reference.MOD_ID);
+        RegistryHelper.registerAll(false);
         LOGGER.info("Loaded LostInTheComplex mod!");
     }
 }

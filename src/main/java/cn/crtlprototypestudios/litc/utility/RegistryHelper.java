@@ -1,5 +1,6 @@
 package cn.crtlprototypestudios.litc.utility;
 
+import cn.crtlprototypestudios.litc.LostInTheComplex;
 import com.mojang.serialization.Codec;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
@@ -19,6 +20,10 @@ import net.minecraft.registry.Registry;
 import net.minecraft.resource.featuretoggle.FeatureSet;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerType;
+import net.minecraft.sound.SoundEvent;
+import net.minecraft.stat.StatFormatter;
+import net.minecraft.stat.Stats;
+import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +38,7 @@ public class RegistryHelper {
     private static final Map<Registry<?>, List<RegistryEntry<?>>> DEFERRED_REGISTERS = new HashMap<>();
     private static Item.Settings DEFAULT_ITEM_SETTINGS = new Item.Settings();
     private static AbstractBlock.Settings DEFAULT_ABSTRACT_BLOCK_SETTINGS = AbstractBlock.Settings.create();
-    private static String MOD_ID;
+    private static String MOD_ID = "litc";
 
     // Item registration
     public static class ItemBuilder {
@@ -382,11 +387,12 @@ public class RegistryHelper {
      *
      * @param <T> the type of the block entity
      * @param name the name of the block entity type
-     * @param builder the builder for the block entity type
+     * @param factory the factory for the block entity type
+     * @param referenceBlock the block of the block entity
      * @return the registry entry for the block entity type
      */
-    public static <T extends BlockEntity> RegistryEntry<BlockEntityType<T>> blockEntity(String name, BlockEntityType.Builder<T> builder) {
-        return register(Registries.BLOCK_ENTITY_TYPE, name, () -> builder.build(null));
+    public static <T extends BlockEntity> RegistryEntry<BlockEntityType<T>> blockEntity(String name, BlockEntityType.BlockEntityFactory<T> factory, Block referenceBlock) {
+        return register(Registries.BLOCK_ENTITY_TYPE, name, () -> BlockEntityType.Builder.create(factory, referenceBlock).build(null));
     }
 
     // Entity registration
@@ -429,8 +435,28 @@ public class RegistryHelper {
         return register(Registries.SCREEN_HANDLER, name, () -> new ScreenHandlerType<>(factory, featureSet));
     }
 
+    public static RegistryEntry<SoundEvent> soundEvent(String name){
+        return register(Registries.SOUND_EVENT, name, () -> SoundEvent.of(id(name)));
+    }
+
+    public static RegistryEntry<Identifier> stat(String name, StatFormatter formatter) {
+        return register(Registries.CUSTOM_STAT, name, () -> {
+            Identifier i = id(name);
+//            Stats.CUSTOM.getOrCreateStat(i, formatter);
+            return i;
+        });
+    }
+
+    public static RegistryEntry<Identifier> stat(String name) {
+        return stat(name, StatFormatter.DEFAULT);
+    }
+
     public static SimpleComponentBuilder simpleComponent(String name){
         return new SimpleComponentBuilder(name);
+    }
+
+    public static FoodComponentBuilder foodComponent(){
+        return new FoodComponentBuilder();
     }
 
     /**
@@ -457,13 +483,25 @@ public class RegistryHelper {
      *
      * The method does not return anything.
      */
-    public static void registerAll(String modid) {
-        MOD_ID = modid;
+    public static void registerAll(boolean clearRegisters) {
         for (List<RegistryEntry<?>> entries : DEFERRED_REGISTERS.values()) {
             for (RegistryEntry<?> entry : entries) {
                 entry.get(); // This triggers the actual registration
+                LostInTheComplex.LOGGER.info("Registered {}", entry.getId());
             }
         }
-        DEFERRED_REGISTERS.clear();
+        if(clearRegisters) DEFERRED_REGISTERS.clear();
+    }
+
+    public static List<RegistryEntry<?>> getDeferredRegisters(Registry<?> registry){
+        return DEFERRED_REGISTERS.get(registry);
+    }
+
+    public static String getModId(){
+        return MOD_ID;
+    }
+
+    public static Identifier id(String name) {
+        return Identifier.of(MOD_ID, name);
     }
 }

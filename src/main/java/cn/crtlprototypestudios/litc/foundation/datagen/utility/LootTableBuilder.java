@@ -157,7 +157,6 @@ public class LootTableBuilder {
         }
 
         public PoolBuilder endItem() {
-//            parent.base.with(base);
             return parent;
         }
 
