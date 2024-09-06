@@ -1,6 +1,7 @@
 package cn.crtlprototypestudios.litc;
 
 import cn.crtlprototypestudios.litc.foundation.*;
+import cn.crtlprototypestudios.litc.foundation.custom.ModProperties;
 import cn.crtlprototypestudios.litc.utility.Reference;
 import cn.crtlprototypestudios.litc.utility.RegistryHelper;
 import net.fabricmc.api.ModInitializer;
@@ -13,6 +14,7 @@ public class LostInTheComplex implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        ModProperties.register();
         ModCodecs.register();
         ModComponents.register();
         ModStats.register();

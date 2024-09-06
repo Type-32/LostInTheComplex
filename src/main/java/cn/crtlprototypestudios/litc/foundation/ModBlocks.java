@@ -33,6 +33,7 @@ public class ModBlocks {
             .build(PillarBlock::new);
     public static final RegistryEntry<LootCrateBlock> LOOT_CRATE_BLOCK = RegistryHelper.block("loot_crate_block")
             .settings(Blocks.BARREL)
+            .settings(settings -> settings.requiresTool().instrument(NoteBlockInstrument.GUITAR))
             .item()
             .build(LootCrateBlock::new);
 

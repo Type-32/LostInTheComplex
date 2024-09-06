@@ -2,9 +2,10 @@ package cn.crtlprototypestudios.litc.foundation.block;
 
 import cn.crtlprototypestudios.litc.foundation.ModStats;
 import cn.crtlprototypestudios.litc.foundation.block.entity.LootCrateBlockEntity;
+import cn.crtlprototypestudios.litc.foundation.custom.ModProperties;
+import cn.crtlprototypestudios.litc.foundation.custom.impl.properties.IdentifierProperty;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.block.*;
-import net.minecraft.block.entity.BarrelBlockEntity;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.screen.ScreenHandler;
@@ -13,6 +14,7 @@ import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.ActionResult;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
@@ -23,16 +25,17 @@ import org.jetbrains.annotations.Nullable;
 public class LootCrateBlock extends BlockWithEntity implements BlockEntityProvider {
     public static final MapCodec<LootCrateBlock> CODEC = createCodec(LootCrateBlock::new);
     public static final BooleanProperty OPEN = Properties.OPEN;
+    public static final IdentifierProperty LOOT_TABLE = ModProperties.LOOT_TABLE;
     public static final int CRATE_INVENTORY_SIZE = 18;
 
     public LootCrateBlock(AbstractBlock.Settings settings) {
         super(settings);
-        this.setDefaultState(this.stateManager.getDefaultState().with(OPEN, Boolean.FALSE));
+        this.setDefaultState(this.stateManager.getDefaultState().with(LOOT_TABLE, Identifier.of("default_loot_crate_loot")).with(OPEN, Boolean.FALSE));
     }
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(OPEN);
+        builder.add(OPEN, LOOT_TABLE);
     }
 
     @Override
