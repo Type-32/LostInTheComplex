@@ -7,7 +7,9 @@ import cn.crtlprototypestudios.litc.foundation.custom.impl.properties.Identifier
 import com.mojang.serialization.MapCodec;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
@@ -30,12 +32,12 @@ public class LootCrateBlock extends BlockWithEntity implements BlockEntityProvid
 
     public LootCrateBlock(AbstractBlock.Settings settings) {
         super(settings);
-        this.setDefaultState(this.stateManager.getDefaultState().with(LOOT_TABLE, Identifier.of("default_loot_crate_loot")).with(OPEN, Boolean.FALSE));
+        this.setDefaultState(this.stateManager.getDefaultState().with(OPEN, Boolean.FALSE));
     }
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(OPEN, LOOT_TABLE);
+        builder.add(OPEN);
     }
 
     @Override
@@ -91,5 +93,14 @@ public class LootCrateBlock extends BlockWithEntity implements BlockEntityProvid
     @Override
     protected int getComparatorOutput(BlockState state, World world, BlockPos pos) {
         return ScreenHandler.calculateComparatorOutput(world.getBlockEntity(pos));
+    }
+
+    @Override
+    public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack) {
+        super.onPlaced(world, pos, state, placer, itemStack);
+        BlockEntity blockEntity = world.getBlockEntity(pos);
+        if (blockEntity instanceof LootCrateBlockEntity) {
+            ((LootCrateBlockEntity) blockEntity).setShouldRegenerate(false);
+        }
     }
 }

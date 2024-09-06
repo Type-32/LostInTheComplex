@@ -17,12 +17,15 @@ public class LostInTheComplex implements ModInitializer {
         ModProperties.register();
         ModCodecs.register();
         ModComponents.register();
+        ModStatusEffects.register();
+        ModPotions.register();
         ModStats.register();
         ModSoundEvents.register();
         ModFluids.register();
         ModBlocks.register();
         ModBlockEntities.register();
         ModItems.register();
+        ModItemGroups.register();
 
         RegistryHelper.registerAll(false);
         LOGGER.info("Loaded LostInTheComplex mod!");

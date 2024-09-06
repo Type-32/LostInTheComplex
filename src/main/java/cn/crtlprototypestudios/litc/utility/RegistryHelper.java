@@ -2,6 +2,7 @@ package cn.crtlprototypestudios.litc.utility;
 
 import cn.crtlprototypestudios.litc.LostInTheComplex;
 import com.mojang.serialization.Codec;
+import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.FluidBlock;
@@ -11,10 +12,17 @@ import net.minecraft.component.ComponentType;
 import net.minecraft.component.type.FoodComponent;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.effect.StatusEffect;
+import net.minecraft.entity.effect.StatusEffectCategory;
+import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.fluid.FlowableFluid;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemGroup;
+import net.minecraft.item.ItemStack;
+import net.minecraft.particle.ParticleEffect;
+import net.minecraft.potion.Potion;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.resource.featuretoggle.FeatureSet;
@@ -22,7 +30,7 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.stat.StatFormatter;
-import net.minecraft.stat.Stats;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +40,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class RegistryHelper {
     public static final Logger LOGGER = LoggerFactory.getLogger(RegistryHelper.class);
@@ -43,7 +52,9 @@ public class RegistryHelper {
     // Item registration
     public static class ItemBuilder {
         private final String name;
+        protected boolean hasModel = false;
         private final Item.Settings settings;
+        protected ItemGroup group;
 
         private ItemBuilder(String name) {
             this.name = name;
@@ -65,13 +76,28 @@ public class RegistryHelper {
             return this;
         }
 
+        public <T> ItemBuilder component(ComponentType<T> componentType, T value) {
+            this.settings.component(componentType, value);
+            return this;
+        }
+
+        public ItemBuilder group(ItemGroup group) {
+            this.group = group;
+            return this;
+        }
+
+        public ItemBuilder hasModel(){
+            hasModel = true;
+            return this;
+        }
+
         /**
          * Builds the item with the specified settings.
          *
          * @return the registry entry for the item
          */
         public RegistryEntry<Item> build() {
-            return register(Registries.ITEM, name, () -> new Item(settings));
+            return register(Registries.ITEM, name, () -> new Item(settings), hasModel);
         }
 
         /**
@@ -185,11 +211,62 @@ public class RegistryHelper {
         }
     }
 
+    public static class ItemGroupBuilder {
+        protected final String name;
+        protected ItemStack stack;
+        protected List<ItemStack> entries;
+
+        private ItemGroupBuilder(String name, Item icon) {
+            this.name = name;
+            icon(icon);
+            entries = new ArrayList<>();
+        }
+
+        public ItemGroupBuilder icon(Item icon) {
+            this.stack = new ItemStack(icon);
+            return this;
+        }
+
+        public ItemGroupBuilder entry(Item item) {
+            entries.add(new ItemStack(item));
+            return this;
+        }
+
+        public ItemGroupBuilder entries(Item... items){
+            for(Item item : items){
+                entry(item);
+            }
+            return this;
+        }
+
+        public ItemGroupBuilder entries(List<Item> items){
+            entries(items.toArray(new Item[0]));
+            return this;
+        }
+
+        public ItemGroupBuilder entries(RegistryEntry<Item>... items) {
+            for(RegistryEntry<Item> entry : items){
+                entry(entry.get());
+            }
+            return this;
+        }
+
+        public RegistryEntry<ItemGroup> build() {
+            return register(Registries.ITEM_GROUP, name, () -> {
+                return FabricItemGroup.builder().displayName(Text.translatable(String.format("itemGroup.%s", name)))
+                        .icon(() -> stack).entries(((displayContext, entries) -> {
+                            entries.addAll(this.entries);
+                        })).build();
+            });
+        }
+    }
+
     // Fluid Block registration
     @Deprecated(forRemoval = true)
     public static class FluidBlockBuilder {
         protected final String name;
         protected final FlowableFluid stillFluid;
+        protected boolean hasModel = false;
         protected AbstractBlock.Settings blockSettings;
 
         private FluidBlockBuilder(String name, FlowableFluid stillFluid) {
@@ -228,38 +305,34 @@ public class RegistryHelper {
         public RegistryEntry<FluidBlock> build() {
             return register(Registries.BLOCK, name, () -> new FluidBlock(stillFluid, blockSettings));
         }
+
+        public FluidBlockBuilder hasModel(){
+            hasModel = true;
+            return this;
+        }
     }
 
     // Fluid registration
     public static class FluidBuilder<T extends Fluid> {
         private final String name;
-        private final Supplier<T> baseFluidSupplier;
-        private Supplier<? extends Fluid> stillSupplier;
-        private Supplier<? extends Fluid> flowingSupplier;
+        private final Supplier<T> stillSupplier;
+        private final Supplier<T> flowingSupplier;
         private Supplier<? extends Item> bucketSupplier;
-        private BiFunction<T, AbstractBlock.Settings, ? extends Block> blockSupplier;
+        private BiFunction<T, AbstractBlock.Settings, FluidBlock> blockSupplier;
         private boolean isVirtual = false;
         protected AbstractBlock.Settings blockSettings;
 
-        private FluidBuilder(String name, Supplier<T> baseFluidSupplier) {
+        private FluidBuilder(String name, Supplier<T> still, Supplier<T> flowing) {
             this.name = name;
-            this.baseFluidSupplier = baseFluidSupplier;
+            this.stillSupplier = still;
+            this.flowingSupplier = flowing;
+
         }
 
-        public FluidBuilder<T> still(Supplier<? extends Fluid> supplier) {
-            this.stillSupplier = supplier;
-            return this;
-        }
-
-        public FluidBuilder<T> flowing(Supplier<? extends Fluid> supplier) {
-            this.flowingSupplier = supplier;
-            return this;
-        }
-
-        public FluidBuilder<T> bucket(Supplier<? extends Item> supplier) {
-            this.bucketSupplier = supplier;
-            return this;
-        }
+//        public FluidBuilder<T> bucket(Supplier<? extends Item> supplier) {
+//            this.bucketSupplier = supplier;
+//            return this;
+//        }
 
         public FluidBuilder<T> block(BiFunction<T, AbstractBlock.Settings, FluidBlock> supplier) {
             this.blockSupplier = supplier;
@@ -295,24 +368,20 @@ public class RegistryHelper {
 
         public FluidEntry<T> build(){
             if (!isVirtual && (stillSupplier == null || flowingSupplier == null || blockSupplier == null)) {
-                throw new RuntimeException("Cannot initialize non-virtual fluid without still/flowing/block suppliers.");
+//                throw new RuntimeException("Cannot initialize non-virtual fluid without still/flowing/block suppliers.");
             }
 
-            RegistryEntry<T> baseFluidEntry = register(Registries.FLUID, name, baseFluidSupplier);
-            RegistryEntry<? extends Fluid> stillFluidEntry = null;
-            RegistryEntry<? extends Fluid> flowingFluidEntry = null;
+            RegistryEntry<T> stillFluidEntry = register(Registries.FLUID, name, stillSupplier);
+            RegistryEntry<T> flowingFluidEntry = null;
             RegistryEntry<? extends Block> blockEntry = null;
             RegistryEntry<? extends Item> bucketEntry = null;
 
             if (!isVirtual) {
-                if (stillSupplier != null) {
-                    stillFluidEntry = register(Registries.FLUID, "still_" + name, stillSupplier);
-                }
                 if (flowingSupplier != null) {
                     flowingFluidEntry = register(Registries.FLUID, "flowing_" + name, flowingSupplier);
                 }
                 if (blockSupplier != null) {
-                    blockEntry = register(Registries.BLOCK, name + "_block", () -> blockSupplier.apply(baseFluidEntry.get(), blockSettings));
+                    blockEntry = register(Registries.BLOCK, name + "_block", () -> blockSupplier.apply(stillFluidEntry.get(), blockSettings));
                 }
             }
 
@@ -320,7 +389,7 @@ public class RegistryHelper {
                 bucketEntry = register(Registries.ITEM, name + "_bucket", bucketSupplier);
             }
 
-            return new FluidEntry<>(baseFluidEntry, stillFluidEntry, flowingFluidEntry, bucketEntry, blockEntry);
+            return new FluidEntry<>(stillFluidEntry, flowingFluidEntry, bucketEntry, blockEntry);
         }
     }
 
@@ -346,6 +415,49 @@ public class RegistryHelper {
 
         public <T> RegistryEntry<ComponentType<T>> build(Codec<T> codec){
             return register(Registries.DATA_COMPONENT_TYPE, name, () -> ComponentType.<T>builder().codec(codec).build());
+        }
+    }
+
+    public static class PotionBuilder {
+        private final String baseName;
+        private final String entryName;
+        private List<StatusEffectInstance> effects;
+
+        private PotionBuilder(String baseName, String entryName) {
+            this.baseName = baseName;
+            this.entryName = entryName;
+            effects = new ArrayList<>();
+        }
+
+        private PotionBuilder(String baseName){
+            this(baseName, baseName);
+        }
+
+        /**
+         * @param effect The status effect of the liquid.
+         * @param duration The duration in terms of ticks.
+         * @return Returns the PotionBuilder.
+         */
+        public PotionBuilder effect(StatusEffect effect, int duration) {
+            effects.add(new StatusEffectInstance(Registries.STATUS_EFFECT.getEntry(effect), duration));
+            return this;
+        }
+
+        /**
+         * @param effect The status effect of the liquid.
+         * @param duration The duration in terms of ticks.
+         * @param amplifier The amplifier of the effect.
+         * @return Returns the PotionBuilder.
+         */
+        public PotionBuilder effect(StatusEffect effect, int duration, int amplifier) {
+            effects.add(new StatusEffectInstance(Registries.STATUS_EFFECT.getEntry(effect), duration, amplifier));
+            return this;
+        }
+
+        public RegistryEntry<Potion> build() {
+            return register(Registries.POTION, entryName, () -> {
+                return entryName.equals(baseName) ? new Potion(effects.toArray(new StatusEffectInstance[0])) : new Potion(baseName, effects.toArray(new StatusEffectInstance[0]));
+            }, false, true);
         }
     }
 
@@ -413,12 +525,13 @@ public class RegistryHelper {
      *
      * @param <T> the type of the fluid (must extend FlowableFluid)
      * @param name the name of the fluid
-     * @param baseFluidSupplier a supplier for creating instances of the fluid
+     * @param still a supplier for creating still instances of the fluid
+     * @param flowing a supplier for creating flowing instances of the fluid
      * @return Fluid Builder for the fluid
      */
     // Fluid registration
-    public static <T extends Fluid> FluidBuilder<T> fluid(String name, Supplier<T> baseFluidSupplier) {
-        return new FluidBuilder<>(name, baseFluidSupplier);
+    public static <T extends Fluid> FluidBuilder<T> fluid(String name, Supplier<T> still, Supplier<T> flowing) {
+        return new FluidBuilder<>(name, still, flowing);
     }
 
     /**
@@ -447,6 +560,22 @@ public class RegistryHelper {
         });
     }
 
+    public static ItemGroupBuilder itemGroup(String name, Item icon) {
+        return new ItemGroupBuilder(name, icon);
+    }
+
+    public static PotionBuilder potion(String name){
+        return new PotionBuilder(name);
+    }
+
+    public static PotionBuilder potion(String baseName, String entryName){
+        return new PotionBuilder(baseName, entryName);
+    }
+
+    public static <T extends StatusEffect> RegistryEntry<T> statusEffect(String name, Supplier<T> supplier){
+        return register(Registries.STATUS_EFFECT, name, supplier, false, true);
+    }
+
     public static RegistryEntry<Identifier> stat(String name) {
         return stat(name, StatFormatter.DEFAULT);
     }
@@ -470,7 +599,38 @@ public class RegistryHelper {
      * @return the registry entry for the entry that was registered
      */
     private static <T> RegistryEntry<T> register(Registry<? super T> registry, String name, Supplier<T> supplier) {
-        RegistryEntry<T> entry = new RegistryEntry<>(registry, name, supplier);
+        return register(registry, name, supplier, false, false);
+    }
+
+    /**
+     * Registers a new entry in the given registry with the specified name and supplier.
+     * The supplier is used to create an instance of the entry in the registry.
+     *
+     * @param <T>      the type of the entry
+     * @param registry the registry to register the entry in
+     * @param name     the name of the entry
+     * @param supplier the supplier to create an instance of the entry
+     * @param hasModel whether the entry has a pre-existing model
+     * @return the registry entry for the entry that was registered
+     */
+    private static <T> RegistryEntry<T> register(Registry<? super T> registry, String name, Supplier<T> supplier, boolean hasModel) {
+        return register(registry, name, supplier, hasModel, false);
+    }
+
+    /**
+     * Registers a new entry in the given registry with the specified name and supplier.
+     * The supplier is used to create an instance of the entry in the registry.
+     *
+     * @param <T>      the type of the entry
+     * @param registry the registry to register the entry in
+     * @param name     the name of the entry
+     * @param supplier the supplier to create an instance of the entry
+     * @param hasModel whether the entry has a pre-existing model
+     * @param registerReference register a reference of the object instead and access it with <code>asRegistryEntry()</code> instead.
+     * @return the registry entry for the entry that was registered
+     */
+    private static <T> RegistryEntry<T> register(Registry<? super T> registry, String name, Supplier<T> supplier, boolean hasModel, boolean registerReference) {
+        RegistryEntry<T> entry = new RegistryEntry<>(registry, name, supplier, hasModel, registerReference);
         DEFERRED_REGISTERS.computeIfAbsent(registry, k -> new ArrayList<>()).add(entry);
         return entry;
     }
@@ -486,7 +646,8 @@ public class RegistryHelper {
     public static void registerAll(boolean clearRegisters) {
         for (List<RegistryEntry<?>> entries : DEFERRED_REGISTERS.values()) {
             for (RegistryEntry<?> entry : entries) {
-                entry.get(); // This triggers the actual registration
+                if(!entry.registerReference()) entry.get(); // This triggers the actual registration
+                else entry.asRegistryEntry();
                 LostInTheComplex.LOGGER.info("Registered {}", entry.getId());
             }
         }

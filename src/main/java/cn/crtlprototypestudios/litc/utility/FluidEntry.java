@@ -8,16 +8,14 @@ import net.minecraft.block.FluidBlock;
 import org.jetbrains.annotations.Nullable;
 
 public class FluidEntry<T extends Fluid> {
-    private final RegistryEntry<T> baseFluid;
-    private final RegistryEntry<? extends Fluid> stillFluid;
-    private final RegistryEntry<? extends Fluid> flowingFluid;
+    private final RegistryEntry<T> stillFluid;
+    private final RegistryEntry<T> flowingFluid;
     private final RegistryEntry<? extends Item> bucketItem;
     private final RegistryEntry<? extends Block> block;
 
-    public FluidEntry(RegistryEntry<T> baseFluid, RegistryEntry<? extends Fluid> stillFluid,
-                      RegistryEntry<? extends Fluid> flowingFluid, RegistryEntry<? extends Item> bucketItem,
+    public FluidEntry(RegistryEntry<T> stillFluid,
+                      RegistryEntry<T> flowingFluid, RegistryEntry<? extends Item> bucketItem,
                       RegistryEntry<? extends Block> block) {
-        this.baseFluid = baseFluid;
         this.stillFluid = stillFluid;
         this.flowingFluid = flowingFluid;
         this.bucketItem = bucketItem;
@@ -26,16 +24,16 @@ public class FluidEntry<T extends Fluid> {
 
     @Nullable
     public T getFluid() {
-        return baseFluid.get();
+        return getStill();
     }
 
     @Nullable
-    public Fluid getStill() {
+    public T getStill() {
         return stillFluid != null ? stillFluid.get() : null;
     }
 
     @Nullable
-    public Fluid getFlowing() {
+    public T getFlowing() {
         return flowingFluid != null ? flowingFluid.get() : null;
     }
 

@@ -1,4 +1,13 @@
 {
   "block.litc.carpeted_floor": "Carpeted Floor",
-  "item.litc.chocolate_bar": "Chocolate Bar"
+  "item.litc.chocolate_bar": "Chocolate Bar",
+  "item.litc.almond_water_bottle": "Bottle of Almond Water",
+  "item.litc.wooden_canteen": "Wooden Canteen",
+  "item.litc.iron_canteen": "Iron Canteen",
+  "item.litc.plastic_bottle": "Plastic Bottle",
+  "item.litc.glass_jug": "Glass Jug",
+  "item.litc.stainless_steel_bottle": "Stainless Steel Bottle",
+  "item.litc.almond_water_bucket": "Bucket of Almond Water",
+  "effect.litc.almond_grace": "Almond Grace",
+  "itemGroup.litc": "Lost In The Complex"
 }

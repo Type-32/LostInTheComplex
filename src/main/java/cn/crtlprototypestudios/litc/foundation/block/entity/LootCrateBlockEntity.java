@@ -1,33 +1,47 @@
 package cn.crtlprototypestudios.litc.foundation.block.entity;
 
 import cn.crtlprototypestudios.litc.foundation.ModBlockEntities;
+import cn.crtlprototypestudios.litc.foundation.ModComponents;
+import cn.crtlprototypestudios.litc.foundation.ModLootTables;
 import cn.crtlprototypestudios.litc.foundation.ModSoundEvents;
 import cn.crtlprototypestudios.litc.foundation.block.LootCrateBlock;
+import cn.crtlprototypestudios.litc.foundation.component.LootCrateDataComponent;
+import cn.crtlprototypestudios.litc.foundation.datagen.ModLootTableGenerator;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.block.BarrelBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
 import net.minecraft.block.entity.ViewerCountManager;
+import net.minecraft.component.ComponentMap;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.loot.LootTable;
+import net.minecraft.loot.LootTables;
+import net.minecraft.loot.context.*;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.screen.GenericContainerScreenHandler;
 import net.minecraft.screen.ScreenHandler;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+
+import java.util.Objects;
 
 public class LootCrateBlockEntity extends LootableContainerBlockEntity {
     private DefaultedList<ItemStack> inventory = DefaultedList.ofSize(LootCrateBlock.CRATE_INVENTORY_SIZE, ItemStack.EMPTY);
+    private boolean shouldRegenerate = true;
     private final ViewerCountManager stateManager = new ViewerCountManager() {
         @Override
         protected void onContainerOpen(World world, BlockPos pos, BlockState state) {
@@ -66,6 +80,7 @@ public class LootCrateBlockEntity extends LootableContainerBlockEntity {
         if (!this.writeLootTable(nbt)) {
             Inventories.writeNbt(nbt, this.inventory, registryLookup);
         }
+        nbt.putBoolean("ShouldRegenerate", this.shouldRegenerate);
     }
 
     @Override
@@ -75,6 +90,7 @@ public class LootCrateBlockEntity extends LootableContainerBlockEntity {
         if (!this.readLootTable(nbt)) {
             Inventories.readNbt(nbt, this.inventory, registryLookup);
         }
+        this.shouldRegenerate = nbt.getBoolean("ShouldRegenerate");
     }
 
     @Override
@@ -120,6 +136,24 @@ public class LootCrateBlockEntity extends LootableContainerBlockEntity {
         if (!this.removed) {
             this.stateManager.updateViewerCount(this.getWorld(), this.getPos(), this.getCachedState());
         }
+        if (this.shouldRegenerate && this.world instanceof ServerWorld && this.world.getTime() % 5000 == 0) {
+            this.regenerateInventory((ServerWorld) this.world);
+        }
+    }
+
+    private void regenerateInventory(ServerWorld world) {
+        LootTable lootTable = ModLootTables.CRATE_BLOCK_LOOT.build();
+
+        DefaultedList<ItemStack> newInventory = DefaultedList.ofSize(this.size(), ItemStack.EMPTY);
+        newInventory.addAll(lootTable.generateLoot(new LootContextParameterSet.Builder(world).build(LootContextTypes.CHEST)));
+
+        this.setHeldStacks(newInventory);
+        this.markDirty();
+    }
+
+    public void setShouldRegenerate(boolean shouldRegenerate) {
+        this.shouldRegenerate = shouldRegenerate;
+        this.markDirty();
     }
 
     void setOpen(BlockState state, boolean open) {

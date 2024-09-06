@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "litc:block/wooden_wallpaper_wall_horizontal",
+      "x": 90,
+      "y": 90
+    },
+    "axis=y": {
+      "model": "litc:block/wooden_wallpaper_wall"
+    },
+    "axis=z": {
+      "model": "litc:block/wooden_wallpaper_wall_horizontal",
+      "x": 90
+    }
+  }
+}

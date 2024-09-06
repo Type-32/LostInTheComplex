@@ -2,7 +2,6 @@ package cn.crtlprototypestudios.litc.foundation;
 
 import cn.crtlprototypestudios.litc.foundation.component.LiquidContainerDataComponent;
 import cn.crtlprototypestudios.litc.foundation.component.LootCrateDataComponent;
-import cn.crtlprototypestudios.litc.utility.Reference;
 import cn.crtlprototypestudios.litc.utility.RegistryHelper;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
