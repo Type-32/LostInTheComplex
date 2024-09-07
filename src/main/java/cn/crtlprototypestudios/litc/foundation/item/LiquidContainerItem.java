@@ -88,7 +88,7 @@ public class LiquidContainerItem extends PotionItem {
                     return TypedActionResult.fail(itemStack);
                 }
 
-                if(fluidState.getFluid() == Fluids.EMPTY) {
+                if(fluidState.getFluid().getDefaultState().equals(Fluids.EMPTY.getDefaultState()) || fluidState.getFluid().equals(Fluids.EMPTY)) {
                     if (comp.amount() <= 0 || liquid == null){
                         return TypedActionResult.fail(itemStack);
                     }

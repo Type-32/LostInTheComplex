@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "litc:block/loot_crate_block"
+    }
+  }
+}
