@@ -15,6 +15,7 @@ public class ModFluids {
     public static FluidEntry<AlmondWaterFluid> ALMOND_WATER = RegistryHelper.fluid("almond_water", AlmondWaterFluid.Still::new, AlmondWaterFluid.Flowing::new)
             .block(AlmondWaterFluid.Block::new)
             .blockSettings(Blocks.WATER)
+            .blockSettings(settings -> settings.replaceable().liquid())
             .build();
 
     public static void register(){

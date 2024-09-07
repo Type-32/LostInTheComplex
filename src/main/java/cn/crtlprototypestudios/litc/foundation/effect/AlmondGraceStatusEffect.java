@@ -5,6 +5,8 @@ import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectCategory;
+import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Identifier;
 
 public class AlmondGraceStatusEffect extends StatusEffect {
@@ -13,7 +15,7 @@ public class AlmondGraceStatusEffect extends StatusEffect {
         this.addAttributeModifier(
                 EntityAttributes.GENERIC_MOVEMENT_SPEED,
                 Identifier.ofVanilla("effect.speed"),
-                0.15,
+                0.05,
                 EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
     }
 
@@ -21,7 +23,6 @@ public class AlmondGraceStatusEffect extends StatusEffect {
         if (entity.getHealth() < entity.getMaxHealth()) {
             entity.heal(0.25F);
         }
-
         return true;
     }
 
@@ -32,10 +33,5 @@ public class AlmondGraceStatusEffect extends StatusEffect {
         } else {
             return true;
         }
-    }
-
-    @Override
-    public String getTranslationKey() {
-        return "effect.litc.almond_grace";
     }
 }

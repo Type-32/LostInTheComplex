@@ -11,19 +11,17 @@ public class RegistryEntry<T> implements Supplier<T> {
     private final String name;
     private final Supplier<T> supplier;
     private T value;
-    private boolean hasModel = false, registerReference = false;
-    private net.minecraft.registry.entry.RegistryEntry.Reference<? super T> entry;
+    private boolean hasModel = false;
 
     protected RegistryEntry(Registry<? super T> registry, String name, Supplier<T> supplier) {
-        this(registry, name, supplier, false, false);
+        this(registry, name, supplier, false);
     }
 
-    protected RegistryEntry(Registry<? super T> registry, String name, Supplier<T> supplier, boolean hasModel, boolean registerReference) {
+    protected RegistryEntry(Registry<? super T> registry, String name, Supplier<T> supplier, boolean hasModel) {
         this.registry = registry;
         this.name = name;
         this.supplier = supplier;
         this.hasModel = hasModel;
-        this.registerReference = registerReference;
     }
 
     /**
@@ -37,7 +35,7 @@ public class RegistryEntry<T> implements Supplier<T> {
     @Override
     public T get() {
         if (value == null) {
-            if(!registerReference) value = Registry.register(registry, RegistryHelper.id(name), supplier.get());
+            value = Registry.register(registry, RegistryHelper.id(name), supplier.get());
         }
         return value;
     }
@@ -51,18 +49,7 @@ public class RegistryEntry<T> implements Supplier<T> {
         return Reference.id(name);
     }
 
-    public net.minecraft.registry.entry.RegistryEntry<T> asRegistryEntry() {
-        if (entry == null && value == null)
-            entry = Registry.registerReference(registry, RegistryHelper.id(name), supplier.get());
-
-        return (net.minecraft.registry.entry.RegistryEntry<T>) entry;
-    }
-
     public boolean hasModel() {
         return hasModel;
-    }
-
-    public boolean registerReference() {
-        return registerReference;
     }
 }

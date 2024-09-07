@@ -40,7 +40,7 @@ public class AlmondWaterFluid extends FlowableFluid {
 
     @Override
     public Fluid getStill() {
-        return ModFluids.ALMOND_WATER.getFluid();
+        return ModFluids.ALMOND_WATER.getStill();
     }
 
     @Override
@@ -86,7 +86,7 @@ public class AlmondWaterFluid extends FlowableFluid {
 
     @Override
     protected BlockState toBlockState(FluidState state) {
-        return Objects.requireNonNull(ModFluids.ALMOND_WATER.getBlock()).getDefaultState().with(Properties.LEVEL_15, getBlockStateLevel(state));
+        return ModFluids.ALMOND_WATER.getBlock().getDefaultState().with(Properties.LEVEL_15, getBlockStateLevel(state));
     }
 
     @Override
@@ -151,7 +151,7 @@ public class AlmondWaterFluid extends FlowableFluid {
 
         @Override
         public int getLevel(FluidState state) {
-            return 5;
+            return 8;
         }
 
         @Override

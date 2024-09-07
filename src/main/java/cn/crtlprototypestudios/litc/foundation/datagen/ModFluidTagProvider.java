@@ -17,6 +17,7 @@ public class ModFluidTagProvider extends FabricTagProvider.FluidTagProvider {
     protected void configure(RegistryWrapper.WrapperLookup wrapperLookup) {
         this.getOrCreateTagBuilder(FluidTags.WATER)
                 .add(ModFluids.ALMOND_WATER.getFluid())
-                .add(ModFluids.ALMOND_WATER.getFlowing());
+                .add(ModFluids.ALMOND_WATER.getFlowing())
+                .add(ModFluids.ALMOND_WATER.getStill());
     }
 }

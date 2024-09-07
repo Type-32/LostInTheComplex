@@ -23,6 +23,7 @@ import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.particle.ParticleEffect;
 import net.minecraft.potion.Potion;
+import net.minecraft.potion.Potions;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.resource.featuretoggle.FeatureSet;
@@ -45,6 +46,7 @@ import java.util.stream.Collectors;
 public class RegistryHelper {
     public static final Logger LOGGER = LoggerFactory.getLogger(RegistryHelper.class);
     private static final Map<Registry<?>, List<RegistryEntry<?>>> DEFERRED_REGISTERS = new HashMap<>();
+    private static final Map<Registry<?>, List<ReferenceRegistryEntry<?>>> DEFERRED_REFERENCE_REGISTERS = new HashMap<>();
     private static Item.Settings DEFAULT_ITEM_SETTINGS = new Item.Settings();
     private static AbstractBlock.Settings DEFAULT_ABSTRACT_BLOCK_SETTINGS = AbstractBlock.Settings.create();
     private static String MOD_ID = "litc";
@@ -368,18 +370,15 @@ public class RegistryHelper {
 
         public FluidEntry<T> build(){
             if (!isVirtual && (stillSupplier == null || flowingSupplier == null || blockSupplier == null)) {
-//                throw new RuntimeException("Cannot initialize non-virtual fluid without still/flowing/block suppliers.");
+                throw new RuntimeException("Cannot initialize non-virtual fluid without still/flowing/block suppliers.");
             }
 
             RegistryEntry<T> stillFluidEntry = register(Registries.FLUID, name, stillSupplier);
-            RegistryEntry<T> flowingFluidEntry = null;
+            RegistryEntry<T> flowingFluidEntry = register(Registries.FLUID, "flowing_" + name, flowingSupplier);
             RegistryEntry<? extends Block> blockEntry = null;
             RegistryEntry<? extends Item> bucketEntry = null;
 
             if (!isVirtual) {
-                if (flowingSupplier != null) {
-                    flowingFluidEntry = register(Registries.FLUID, "flowing_" + name, flowingSupplier);
-                }
                 if (blockSupplier != null) {
                     blockEntry = register(Registries.BLOCK, name + "_block", () -> blockSupplier.apply(stillFluidEntry.get(), blockSettings));
                 }
@@ -443,6 +442,16 @@ public class RegistryHelper {
             return this;
         }
 
+        public PotionBuilder effect(net.minecraft.registry.entry.RegistryEntry<StatusEffect> effect, int duration) {
+            effects.add(new StatusEffectInstance(effect, duration));
+            return this;
+        }
+
+        public PotionBuilder effect(StatusEffectInstance effect) {
+            effects.add(effect);
+            return this;
+        }
+
         /**
          * @param effect The status effect of the liquid.
          * @param duration The duration in terms of ticks.
@@ -454,10 +463,15 @@ public class RegistryHelper {
             return this;
         }
 
-        public RegistryEntry<Potion> build() {
-            return register(Registries.POTION, entryName, () -> {
+        public PotionBuilder effect(net.minecraft.registry.entry.RegistryEntry<StatusEffect> effect, int duration, int amplifier) {
+            effects.add(new StatusEffectInstance(effect, duration, amplifier));
+            return this;
+        }
+
+        public ReferenceRegistryEntry<Potion> build() {
+            return registerReference(Registries.POTION, entryName, () -> {
                 return entryName.equals(baseName) ? new Potion(effects.toArray(new StatusEffectInstance[0])) : new Potion(baseName, effects.toArray(new StatusEffectInstance[0]));
-            }, false, true);
+            });
         }
     }
 
@@ -572,8 +586,8 @@ public class RegistryHelper {
         return new PotionBuilder(baseName, entryName);
     }
 
-    public static <T extends StatusEffect> RegistryEntry<T> statusEffect(String name, Supplier<T> supplier){
-        return register(Registries.STATUS_EFFECT, name, supplier, false, true);
+    public static ReferenceRegistryEntry<StatusEffect> statusEffect(String name, Supplier<StatusEffect> supplier){
+        return registerReference(Registries.STATUS_EFFECT, name, supplier);
     }
 
     public static RegistryEntry<Identifier> stat(String name) {
@@ -599,7 +613,7 @@ public class RegistryHelper {
      * @return the registry entry for the entry that was registered
      */
     private static <T> RegistryEntry<T> register(Registry<? super T> registry, String name, Supplier<T> supplier) {
-        return register(registry, name, supplier, false, false);
+        return register(registry, name, supplier, false);
     }
 
     /**
@@ -614,24 +628,24 @@ public class RegistryHelper {
      * @return the registry entry for the entry that was registered
      */
     private static <T> RegistryEntry<T> register(Registry<? super T> registry, String name, Supplier<T> supplier, boolean hasModel) {
-        return register(registry, name, supplier, hasModel, false);
+        RegistryEntry<T> entry = new RegistryEntry<>(registry, name, supplier, hasModel);
+        DEFERRED_REGISTERS.computeIfAbsent(registry, k -> new ArrayList<>()).add(entry);
+        return entry;
     }
 
     /**
-     * Registers a new entry in the given registry with the specified name and supplier.
-     * The supplier is used to create an instance of the entry in the registry.
+     * Registers a new entry in the given registry with the specified name and supplier,
+     * using Registry.registerReference.
      *
      * @param <T>      the type of the entry
      * @param registry the registry to register the entry in
      * @param name     the name of the entry
      * @param supplier the supplier to create an instance of the entry
-     * @param hasModel whether the entry has a pre-existing model
-     * @param registerReference register a reference of the object instead and access it with <code>asRegistryEntry()</code> instead.
-     * @return the registry entry for the entry that was registered
+     * @return the ReferenceRegistryEntry for the entry that was registered
      */
-    private static <T> RegistryEntry<T> register(Registry<? super T> registry, String name, Supplier<T> supplier, boolean hasModel, boolean registerReference) {
-        RegistryEntry<T> entry = new RegistryEntry<>(registry, name, supplier, hasModel, registerReference);
-        DEFERRED_REGISTERS.computeIfAbsent(registry, k -> new ArrayList<>()).add(entry);
+    public static <T> ReferenceRegistryEntry<T> registerReference(Registry<T> registry, String name, Supplier<T> supplier) {
+        ReferenceRegistryEntry<T> entry = new ReferenceRegistryEntry<>(registry, name, supplier);
+        DEFERRED_REFERENCE_REGISTERS.computeIfAbsent(registry, k -> new ArrayList<>()).add(entry);
         return entry;
     }
 
@@ -644,18 +658,35 @@ public class RegistryHelper {
      * The method does not return anything.
      */
     public static void registerAll(boolean clearRegisters) {
+        LostInTheComplex.LOGGER.info("Registering References...");
+        for (List<ReferenceRegistryEntry<?>> entries : DEFERRED_REFERENCE_REGISTERS.values()) {
+            for (ReferenceRegistryEntry<?> entry : entries) {
+                entry.get();
+                LostInTheComplex.LOGGER.info("Registered {}", entry.getValue());
+            }
+        }
+        LostInTheComplex.LOGGER.info("References Registered.");
+
+        LostInTheComplex.LOGGER.info("Registering Entries...");
         for (List<RegistryEntry<?>> entries : DEFERRED_REGISTERS.values()) {
             for (RegistryEntry<?> entry : entries) {
-                if(!entry.registerReference()) entry.get(); // This triggers the actual registration
-                else entry.asRegistryEntry();
+                entry.get();
                 LostInTheComplex.LOGGER.info("Registered {}", entry.getId());
             }
         }
-        if(clearRegisters) DEFERRED_REGISTERS.clear();
+        if(clearRegisters) {
+            DEFERRED_REFERENCE_REGISTERS.clear();
+            DEFERRED_REGISTERS.clear();
+        }
+        LostInTheComplex.LOGGER.info("Entries Registered.");
     }
 
     public static List<RegistryEntry<?>> getDeferredRegisters(Registry<?> registry){
         return DEFERRED_REGISTERS.get(registry);
+    }
+
+    public static List<ReferenceRegistryEntry<?>> getDeferredReferenceRegisters(Registry<?> registry){
+        return DEFERRED_REFERENCE_REGISTERS.get(registry);
     }
 
     public static String getModId(){

@@ -8,10 +8,10 @@ import cn.crtlprototypestudios.litc.utility.RegistryEntry;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.PotionContentsComponent;
 import net.minecraft.item.Item;
-import net.minecraft.item.Items;
 import net.minecraft.potion.Potions;
-import net.minecraft.registry.Registries;
 import net.minecraft.util.Rarity;
+
+import java.util.Objects;
 
 public class ModItems {
     public static final RegistryEntry<Item> PLANKS = RegistryHelper.item("planks")
@@ -31,14 +31,14 @@ public class ModItems {
             .build();
 
     public static final RegistryEntry<LiquidContainerItem> WOODEN_CANTEEN = RegistryHelper.item("wooden_canteen")
-            .settings(settings -> settings
-                    .component(ModComponents.LIQUID_CONTAINER_DATA_COMPONENT.get(), LiquidContainerDataComponent.DEFAULT_EMPTY))
+            .component(ModComponents.LIQUID_CONTAINER_DATA_COMPONENT.get(), LiquidContainerDataComponent.DEFAULT_EMPTY)
+            .component(DataComponentTypes.POTION_CONTENTS, PotionContentsComponent.DEFAULT)
             .hasModel()
             .build(LiquidContainerItem::new);
 
     public static final RegistryEntry<LiquidContainerItem> ALMOND_WATER_BOTTLE = RegistryHelper.item("almond_water_bottle")
-            .component(ModComponents.LIQUID_CONTAINER_DATA_COMPONENT.get(), new LiquidContainerDataComponent(2, 2, false, ModPotions.findId(ModPotions.ALMOND_GRACE_POTION.asRegistryEntry().value())))
-            .component(DataComponentTypes.POTION_CONTENTS, new PotionContentsComponent(ModPotions.ALMOND_GRACE_POTION.asRegistryEntry()))
+            .component(ModComponents.LIQUID_CONTAINER_DATA_COMPONENT.get(), new LiquidContainerDataComponent(2, 2, false, ModFluids.findId(ModFluids.ALMOND_WATER.getFluid().getDefaultState().getFluid())))
+            .component(DataComponentTypes.POTION_CONTENTS, new PotionContentsComponent(ModPotions.SLIGHT_REJUVENATION.get()))
             .build(LiquidContainerItem::new);
 
     public static final RegistryEntry<AlmondWaterFluidBucket> ALMOND_WATER_BUCKET = RegistryHelper.item("almond_water_bucket")
