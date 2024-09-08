@@ -27,7 +27,7 @@ public class ModItems {
             .build();
 
     public static final RegistryEntry<Item> CHOCOLATE_BAR = RegistryHelper.item("chocolate_bar")
-            .settings(settings -> settings.food(ModComponents.CHOCOLATE_BAR_COMPONENT))
+            .settings(settings -> settings.food(ModComponents.CHOCOLATE_BAR_COMPONENT).maxCount(6))
             .build();
 
     public static final RegistryEntry<LiquidContainerItem> WOODEN_CANTEEN = RegistryHelper.item("wooden_canteen")
