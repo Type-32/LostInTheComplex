@@ -37,7 +37,7 @@ public class ModItems {
             .build(LiquidContainerItem::new);
 
     public static final RegistryEntry<LiquidContainerItem> ALMOND_WATER_BOTTLE = RegistryHelper.item("almond_water_bottle")
-            .component(ModComponents.LIQUID_CONTAINER_DATA_COMPONENT.get(), new LiquidContainerDataComponent(2, 2, false, ModFluids.findId(Objects.requireNonNull(ModFluids.ALMOND_WATER.getFluid()).getDefaultState().getFluid()), false))
+            .component(ModComponents.LIQUID_CONTAINER_DATA_COMPONENT.get(), new LiquidContainerDataComponent(2, 2, false, ModFluids.findId(Objects.requireNonNull(ModFluids.ALMOND_WATER.getFluid()).getDefaultState().getFluid()), true))
             .component(DataComponentTypes.POTION_CONTENTS, new PotionContentsComponent(ModPotions.SLIGHT_REJUVENATION.get()))
             .build(LiquidContainerItem::new);
 

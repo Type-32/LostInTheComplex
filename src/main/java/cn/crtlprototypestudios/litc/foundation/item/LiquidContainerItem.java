@@ -216,17 +216,22 @@ public class LiquidContainerItem extends PotionItem {
                 }
 
                 stack.set(ModComponents.LIQUID_CONTAINER_DATA_COMPONENT.get(), new LiquidContainerDataComponent(currentAmount, comp.max(), comp.replenishable(), liquid, comp.clearEffectsOnEmpty()));
-                LostInTheComplex.LOGGER.info("Log stack {}", stack);
+//                LostInTheComplex.LOGGER.info("Log stack {}", stack);
             }
 
             user.emitGameEvent(GameEvent.DRINK);
 
-            LostInTheComplex.LOGGER.info("Log stack {}", stack);
+//            LostInTheComplex.LOGGER.info("Log stack {}", stack);
             return stack;
         } catch (Exception e) {
             LostInTheComplex.LOGGER.info("Unexpected Error: {}", e.getMessage());
         }
 
         return getDefaultStack();
+    }
+
+    @Override
+    public String getTranslationKey() {
+        return super.getOrCreateTranslationKey();
     }
 }
