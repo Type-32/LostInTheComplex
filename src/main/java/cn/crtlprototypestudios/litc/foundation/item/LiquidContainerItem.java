@@ -152,11 +152,6 @@ public class LiquidContainerItem extends PotionItem {
     }
 
     @Override
-    public String getTranslationKey(ItemStack stack) {
-        return super.getTranslationKey(stack);
-    }
-
-    @Override
     public ItemStack getDefaultStack() {
         ItemStack stack = super.getDefaultStack();
         stack.set(ModComponents.LIQUID_CONTAINER_DATA_COMPONENT.get(), LiquidContainerDataComponent.DEFAULT_EMPTY);
@@ -231,7 +226,7 @@ public class LiquidContainerItem extends PotionItem {
     }
 
     @Override
-    public String getTranslationKey() {
+    public String getTranslationKey(ItemStack stack) {
         return super.getOrCreateTranslationKey();
     }
 }
