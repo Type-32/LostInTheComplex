@@ -82,18 +82,8 @@ public class LiquidContainerItem extends PotionItem {
                 BlockState state = world.getBlockState(pos);
                 FluidState fluidState = world.getFluidState(pos);
 
-                LostInTheComplex.LOGGER.info("Detected {} and {} from raycast", state, fluidState);
-
                 if (comp.amount() >= comp.max() || !comp.replenishable()){
                     return TypedActionResult.fail(itemStack);
-                }
-
-                if(fluidState.getFluid().getDefaultState().equals(Fluids.EMPTY.getDefaultState()) || fluidState.getFluid().equals(Fluids.EMPTY)) {
-                    if (comp.amount() <= 0 || liquid == null){
-                        return TypedActionResult.fail(itemStack);
-                    }
-
-                    return ItemUsage.consumeHeldItem(world, user, hand);
                 }
 
                 if(liquid == null || comp.amount() <= 0) { // If the liquid container item is empty.
@@ -121,9 +111,11 @@ public class LiquidContainerItem extends PotionItem {
                                 itemStack.set(DataComponentTypes.POTION_CONTENTS, new PotionContentsComponent(Potions.WATER));
                             }
 
-                            LostInTheComplex.LOGGER.info("DEBUG Fluid not null, there is fluid for block");
                             return TypedActionResult.success(itemStack);
                         }
+                    } else {
+                        LostInTheComplex.LOGGER.info("Detected {} and {} from raycast", state, fluidState);
+                        return ItemUsage.consumeHeldItem(world, user, hand);
                     }
                 }
                 else {
@@ -172,6 +164,7 @@ public class LiquidContainerItem extends PotionItem {
     public ItemStack getDefaultStack() {
         ItemStack stack = super.getDefaultStack();
         stack.set(ModComponents.LIQUID_CONTAINER_DATA_COMPONENT.get(), LiquidContainerDataComponent.DEFAULT_EMPTY);
+        stack.set(DataComponentTypes.POTION_CONTENTS, PotionContentsComponent.DEFAULT);
         return stack;
     }
 
@@ -182,53 +175,63 @@ public class LiquidContainerItem extends PotionItem {
 
     @Override
     public ItemStack finishUsing(ItemStack stack, World world, LivingEntity user) {
-        if (!stack.contains(ModComponents.LIQUID_CONTAINER_DATA_COMPONENT.get()))
-            return stack;
+        try {
+            if (!stack.contains(ModComponents.LIQUID_CONTAINER_DATA_COMPONENT.get()))
+                return stack;
 
-        LiquidContainerDataComponent comp = stack.get(ModComponents.LIQUID_CONTAINER_DATA_COMPONENT.get());
-        int currentAmount = 0;
-        assert comp != null;
-        currentAmount = comp.amount();
-        Identifier liquid = comp.liquid();
+            LiquidContainerDataComponent comp = stack.get(ModComponents.LIQUID_CONTAINER_DATA_COMPONENT.get());
+            int currentAmount = 0;
+            assert comp != null;
+            currentAmount = comp.amount();
+            Identifier liquid = comp.liquid();
 
-        PlayerEntity playerEntity = user instanceof PlayerEntity ? (PlayerEntity)user : null;
+            PlayerEntity playerEntity = user instanceof PlayerEntity ? (PlayerEntity) user : null;
 
-        if (liquid != null){
-            if (playerEntity instanceof ServerPlayerEntity) {
-                Criteria.CONSUME_ITEM.trigger((ServerPlayerEntity)playerEntity, stack);
-            }
-
-            if (!world.isClient) {
-                if (stack.getComponents().contains(DataComponentTypes.POTION_CONTENTS)) {
-                    PotionContentsComponent potionContentsComponent = stack.getOrDefault(DataComponentTypes.POTION_CONTENTS, PotionContentsComponent.DEFAULT);
-                    potionContentsComponent.forEachEffect((effect) -> {
-                        if (effect.getEffectType().value().isInstant()) {
-                            effect.getEffectType().value().applyInstantEffect(playerEntity, playerEntity, user, effect.getAmplifier(), 1.0);
-                        } else {
-                            user.addStatusEffect(effect);
-                        }
-                    });
+            if (liquid != null) {
+                if (playerEntity instanceof ServerPlayerEntity) {
+                    Criteria.CONSUME_ITEM.trigger((ServerPlayerEntity) playerEntity, stack);
                 }
-            }
 
-            if (playerEntity != null) {
-                playerEntity.incrementStat(Stats.USED.getOrCreateStat(this));
-
-                if(!playerEntity.isInCreativeMode()) {
-                    currentAmount = Math.clamp(currentAmount - 1, 0, comp.max());
-                    if (currentAmount <= 0) {
-                        liquid = null;
-                        if(stack.getComponents().contains(DataComponentTypes.POTION_CONTENTS))
-                            stack.set(DataComponentTypes.POTION_CONTENTS, PotionContentsComponent.DEFAULT);
+                if (!world.isClient) {
+                    if (stack.getComponents().contains(DataComponentTypes.POTION_CONTENTS)) {
+                        PotionContentsComponent potionContentsComponent = stack.getOrDefault(DataComponentTypes.POTION_CONTENTS, PotionContentsComponent.DEFAULT);
+                        potionContentsComponent.forEachEffect((effect) -> {
+                            if (effect.getEffectType().value().isInstant()) {
+                                effect.getEffectType().value().applyInstantEffect(playerEntity, playerEntity, user, effect.getAmplifier(), 1.0);
+                            } else {
+                                user.addStatusEffect(effect);
+                            }
+                        });
                     }
                 }
+
+                if (playerEntity != null) {
+                    playerEntity.incrementStat(Stats.USED.getOrCreateStat(this));
+
+                    if (!playerEntity.isInCreativeMode()) {
+                        currentAmount = Math.clamp(currentAmount - 1, 0, comp.max());
+                        if (currentAmount <= 0) {
+                            liquid = null;
+                            if (stack.getComponents().contains(DataComponentTypes.POTION_CONTENTS)) {
+                                stack.set(DataComponentTypes.POTION_CONTENTS, PotionContentsComponent.DEFAULT);
+                                LostInTheComplex.LOGGER.info("Log stack {}", stack);
+                            }
+                        }
+                    }
+                }
+
+                stack.set(ModComponents.LIQUID_CONTAINER_DATA_COMPONENT.get(), new LiquidContainerDataComponent(currentAmount, comp.max(), comp.replenishable(), liquid));
+                LostInTheComplex.LOGGER.info("Log stack {}", stack);
             }
 
-            stack.set(ModComponents.LIQUID_CONTAINER_DATA_COMPONENT.get(), new LiquidContainerDataComponent(currentAmount, comp.max(), comp.replenishable(), liquid));
+            user.emitGameEvent(GameEvent.DRINK);
+
+            LostInTheComplex.LOGGER.info("Log stack {}", stack);
+            return stack;
+        } catch (Exception e) {
+            LostInTheComplex.LOGGER.info("Unexpected Error: {}", e.getMessage());
         }
 
-        user.emitGameEvent(GameEvent.DRINK);
-
-        return stack;
+        return getDefaultStack();
     }
 }
