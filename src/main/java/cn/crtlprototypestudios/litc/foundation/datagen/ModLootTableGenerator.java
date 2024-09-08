@@ -66,17 +66,17 @@ public class ModLootTableGenerator extends FabricBlockLootTableProvider {
                 .pool()
                     .addItem(ModItems.ALMOND_WATER_BOTTLE.get())
                         .setComponent(ModComponents.LIQUID_CONTAINER_DATA_COMPONENT.get(),
-                                new LiquidContainerDataComponent(1, 2, false, Registries.FLUID.getId(ModFluids.ALMOND_WATER.getFluid())))
+                                new LiquidContainerDataComponent(1, 2, false, Registries.FLUID.getId(ModFluids.ALMOND_WATER.getFluid()), false))
                         .weight(50)
                     .endItem()
                     .addItem(ModItems.ALMOND_WATER_BOTTLE.get())
                         .setComponent(ModComponents.LIQUID_CONTAINER_DATA_COMPONENT.get(),
-                                new LiquidContainerDataComponent(2, 2, false, Registries.FLUID.getId(ModFluids.ALMOND_WATER.getFluid())))
+                                new LiquidContainerDataComponent(2, 2, false, Registries.FLUID.getId(ModFluids.ALMOND_WATER.getFluid()), false))
                         .weight(10)
                     .endItem()
                     .addItem(ModItems.ALMOND_WATER_BOTTLE.get())
                         .setComponent(ModComponents.LIQUID_CONTAINER_DATA_COMPONENT.get(),
-                                new LiquidContainerDataComponent(0, 2, true, Registries.FLUID.getId(ModFluids.ALMOND_WATER.getFluid())))
+                                new LiquidContainerDataComponent(0, 2, true, Registries.FLUID.getId(ModFluids.ALMOND_WATER.getFluid()), false))
                         .weight(1)
                     .endItem()
                 .endPool();
