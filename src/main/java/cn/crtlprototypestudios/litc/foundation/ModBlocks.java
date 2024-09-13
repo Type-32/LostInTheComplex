@@ -25,11 +25,13 @@ public class ModBlocks {
     public static final RegistryEntry<PillarBlock> WOODEN_WALLPAPER_WALL = RegistryHelper.block("wooden_wallpaper_wall")
             .settings(settings -> settings.resistance(2.0F).hardness(8.0F).requiresTool().instrument(NoteBlockInstrument.GUITAR))
             .item()
+            .hasBlockstate()
             .build(PillarBlock::new);
     public static final RegistryEntry<PillarBlock> CONCRETE_WALLPAPER_WALL = RegistryHelper.block("concrete_wallpaper_wall")
             .settings(Blocks.OBSIDIAN)
             .settings(settings -> settings.requiresTool().instrument(NoteBlockInstrument.BASS))
             .item()
+            .hasBlockstate()
             .build(PillarBlock::new);
     public static final RegistryEntry<LootCrateBlock> LOOT_CRATE_BLOCK = RegistryHelper.block("loot_crate_block")
             .settings(Blocks.BARREL)

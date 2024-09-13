@@ -10,12 +10,12 @@ import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.FluidBlock;
 import net.minecraft.block.PillarBlock;
-import net.minecraft.data.client.BlockStateModelGenerator;
-import net.minecraft.data.client.ItemModelGenerator;
-import net.minecraft.data.client.Models;
+import net.minecraft.data.client.*;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
+import net.minecraft.state.property.Properties;
+import net.minecraft.util.math.Direction;
 
 public class ModModelProvider extends FabricModelProvider {
     public ModModelProvider(FabricDataOutput output) {
@@ -25,13 +25,14 @@ public class ModModelProvider extends FabricModelProvider {
     @Override
     public void generateBlockStateModels(BlockStateModelGenerator blockStateModelGenerator) {
         for (RegistryEntry<?> i : RegistryHelper.getDeferredRegisters(Registries.BLOCK)){
-            if(i.get() instanceof FluidBlock)
+            if(i.get() instanceof FluidBlock || i.hasModel())
                 continue;
             else if(i.get() instanceof PillarBlock) {
                 blockStateModelGenerator.registerLog((PillarBlock) i.get()).log((PillarBlock) i.get());
             } else {
                 blockStateModelGenerator.registerSimpleCubeAll((Block) i.get());
             }
+//            blockStateModelGenerator.registerRandomHorizontalRotations(MultipartBlockStateSupplier.create(ModBlocks.YELLOW_CARPETED_FLOOR.get()).with(When.create().set(Properties.HORIZONTAL_AXIS, Direction.Axis.X)).);
 //            blockStateModelGenerator.registerItemModel((Block) i.get());
         }
     }

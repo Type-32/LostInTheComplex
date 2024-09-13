@@ -13,7 +13,6 @@ import net.minecraft.component.type.FoodComponent;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.entity.effect.StatusEffectCategory;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.fluid.FlowableFluid;
 import net.minecraft.fluid.Fluid;
@@ -21,9 +20,7 @@ import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
-import net.minecraft.particle.ParticleEffect;
 import net.minecraft.potion.Potion;
-import net.minecraft.potion.Potions;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.resource.featuretoggle.FeatureSet;
@@ -41,7 +38,6 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public class RegistryHelper {
     public static final Logger LOGGER = LoggerFactory.getLogger(RegistryHelper.class);
@@ -120,6 +116,7 @@ public class RegistryHelper {
         protected AbstractBlock.Settings blockSettings;
         protected Item.Settings itemSettings;
         protected boolean registerItem = false;
+        protected boolean hasBlockState = false;
 
         private BlockBuilder(String name) {
             this.name = name;
@@ -184,17 +181,18 @@ public class RegistryHelper {
             return this;
         }
 
+        public BlockBuilder hasBlockstate(){
+            this.hasBlockState = true;
+            return this;
+        }
+
         /**
          * Builds the block with the specified settings.
          *
          * @return the registry entry for the block
          */
         public RegistryEntry<Block> build() {
-            RegistryEntry<Block> blockEntry = register(Registries.BLOCK, name, () -> new Block(blockSettings));
-            if (registerItem) {
-                register(Registries.ITEM, name, () -> new BlockItem(blockEntry.get(), itemSettings));
-            }
-            return blockEntry;
+            return build(Block::new);
         }
 
         /**
@@ -205,7 +203,7 @@ public class RegistryHelper {
          * @return the registry entry for the block
          */
         public <T extends Block> RegistryEntry<T> build(Function<AbstractBlock.Settings, T> factory) {
-            RegistryEntry<T> blockEntry = register(Registries.BLOCK, name, () -> factory.apply(blockSettings));
+            RegistryEntry<T> blockEntry = register(Registries.BLOCK, name, () -> factory.apply(blockSettings), hasBlockState);
             if (registerItem) {
                 register(Registries.ITEM, name, () -> new BlockItem(blockEntry.get(), itemSettings));
             }

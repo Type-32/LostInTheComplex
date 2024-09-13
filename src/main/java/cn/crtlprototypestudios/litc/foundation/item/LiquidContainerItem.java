@@ -72,7 +72,6 @@ public class LiquidContainerItem extends PotionItem {
 
         LiquidContainerDataComponent comp = itemStack.get(ModComponents.LIQUID_CONTAINER_DATA_COMPONENT.get());
         assert comp != null;
-        Identifier liquid = comp.liquid();
 
         BlockHitResult raytrace = Item.raycast(world, user, RaycastContext.FluidHandling.SOURCE_ONLY);
 
@@ -82,8 +81,8 @@ public class LiquidContainerItem extends PotionItem {
                 BlockState state = world.getBlockState(pos);
                 FluidState fluidState = world.getFluidState(pos);
 
-                if (!comp.replenishable())
-                    return TypedActionResult.fail(itemStack);
+                if (!comp.replenishable() && !comp.isEmpty())
+                    return ItemUsage.consumeHeldItem(world, user, hand);
 
                 if(comp.isEmpty()) { // If the liquid container item is empty.
                     if (state.getBlock().equals(Blocks.WATER_CAULDRON)) { // Water from cauldron
@@ -113,8 +112,7 @@ public class LiquidContainerItem extends PotionItem {
                             return TypedActionResult.success(itemStack);
                         }
                     }
-                }
-                else {
+                } else {
                     if (state.getBlock().equals(Blocks.WATER_CAULDRON)) {
                         int level = state.get(LeveledCauldronBlock.LEVEL);
 

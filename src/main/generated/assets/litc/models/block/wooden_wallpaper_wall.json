@@ -1,7 +1,0 @@
-{
-  "parent": "minecraft:block/cube_column",
-  "textures": {
-    "end": "litc:block/wooden_wallpaper_wall_top",
-    "side": "litc:block/wooden_wallpaper_wall"
-  }
-}

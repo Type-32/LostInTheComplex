@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "litc:block/wooden_wallpaper_wall/top/2",
+    "side": "litc:block/wooden_wallpaper_wall/2"
+  }
+}
