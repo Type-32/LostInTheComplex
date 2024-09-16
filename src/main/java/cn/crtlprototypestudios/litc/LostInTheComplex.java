@@ -2,9 +2,11 @@ package cn.crtlprototypestudios.litc;
 
 import cn.crtlprototypestudios.litc.foundation.*;
 import cn.crtlprototypestudios.litc.foundation.custom.ModProperties;
+import cn.crtlprototypestudios.litc.foundation.event.AllowChatMessageHandler;
 import cn.crtlprototypestudios.litc.utility.Reference;
 import cn.crtlprototypestudios.litc.utility.RegistryHelper;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +30,9 @@ public class LostInTheComplex implements ModInitializer {
         ModItemGroups.register();
 
         RegistryHelper.registerAll(false);
+        ModGameRules.register();
+
+        ServerMessageEvents.ALLOW_CHAT_MESSAGE.register(new AllowChatMessageHandler());
         LOGGER.info("Loaded LostInTheComplex mod!");
     }
 }

@@ -1,5 +1,6 @@
 {
   "block.litc.carpeted_floor": "Carpeted Floor",
+
   "item.litc.chocolate_bar": "Chocolate Bar",
   "item.litc.almond_water_bottle": "Bottle of Almond Water",
   "item.litc.wooden_canteen": "Wooden Canteen",
@@ -8,6 +9,23 @@
   "item.litc.glass_jug": "Glass Jug",
   "item.litc.stainless_steel_bottle": "Stainless Steel Bottle",
   "item.litc.almond_water_bucket": "Bucket of Almond Water",
+
+  "chat.litc.response.no_players_within_proximity.0": "None had responded.",
+  "chat.litc.response.no_players_within_proximity.1": "No response...",
+  "chat.litc.response.no_players_within_proximity.2": "Silence echoes around you.",
+  "chat.litc.response.no_players_within_proximity.3": "No one's around you.",
+  "chat.litc.response.no_players_within_proximity.4": "You're alone.",
+  "chat.litc.response.no_players_within_proximity.5": "Don't have your hopes up.",
+  "chat.litc.response.no_players_within_proximity.6": "Why? No one will respond.",
+  "chat.litc.response.no_players_within_proximity.7": "Nothingness crept in.",
+  "chat.litc.response.no_players_within_proximity.8": "The only response was the deafening silence.",
+  "chat.litc.response.no_players_within_proximity.9": "No response at all...",
+
   "effect.litc.almond_grace": "Almond Grace",
-  "itemGroup.litc": "Lost In The Complex"
+
+  "itemGroup.litc": "Lost In The Complex",
+
+  "gamerule.proximityChat": "Proximity Chat",
+  "gamerule.proximityChatDistance": "Proximity Chat Distance",
+  "gamerule.showPlayerNametags": "Show Player Name Tags"
 }
