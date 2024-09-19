@@ -1,5 +1,6 @@
 package cn.crtlprototypestudios.litc;
 
+import cn.crtlprototypestudios.litc.experimental.ticking.StateScheduler;
 import cn.crtlprototypestudios.litc.foundation.*;
 import cn.crtlprototypestudios.litc.foundation.custom.ModProperties;
 import cn.crtlprototypestudios.litc.foundation.event.AllowChatMessageHandler;
@@ -31,6 +32,8 @@ public class LostInTheComplex implements ModInitializer {
 
         RegistryHelper.registerAll(false);
         ModGameRules.register();
+
+        StateScheduler.register();
 
         ServerMessageEvents.ALLOW_CHAT_MESSAGE.register(new AllowChatMessageHandler());
         LOGGER.info("Loaded LostInTheComplex mod!");
