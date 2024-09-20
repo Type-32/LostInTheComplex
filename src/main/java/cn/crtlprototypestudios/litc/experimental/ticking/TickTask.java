@@ -1,10 +1,12 @@
 package cn.crtlprototypestudios.litc.experimental.ticking;
 
+import cn.crtlprototypestudios.litc.experimental.neural.ssm.SituationalStateMachine;
+
 public class TickTask {
     public final int runEveryTicks;
-    public final Runnable runnable;
-    public TickTask(int runEveryTicks, Runnable runnable) {
+    public final SituationalStateMachine ssm;
+    public TickTask(int runEveryTicks, SituationalStateMachine ssm) {
         this.runEveryTicks = runEveryTicks;
-        this.runnable = runnable;
+        this.ssm = ssm;
     }
 }

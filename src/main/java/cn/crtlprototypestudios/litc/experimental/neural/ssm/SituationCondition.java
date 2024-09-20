@@ -1,16 +1,17 @@
 package cn.crtlprototypestudios.litc.experimental.neural.ssm;
 
 import java.util.Objects;
-import java.util.function.Supplier;
+import java.util.function.Function;
+import java.util.function.Consumer;
 
 public class SituationCondition {
     private final String name;
     private double weight;
-    private Supplier<Boolean> conditionCheck;
-    private final Runnable action;
+    private Function<SituationalInformation, Boolean> conditionCheck;
+    private final Consumer<SituationalInformation> action;
     private final double passingThreshold;
 
-    public SituationCondition(String name, double weight, Supplier<Boolean> conditionCheck, Runnable action, double passingThreshold) {
+    public SituationCondition(String name, double weight, Function<SituationalInformation, Boolean> conditionCheck, Consumer<SituationalInformation> action, double passingThreshold) {
         this.name = name;
         this.weight = weight;
         this.conditionCheck = conditionCheck;
@@ -26,24 +27,24 @@ public class SituationCondition {
         this.weight = weight;
     }
 
-    public boolean checkCondition() {
-        return conditionCheck.get();
+    public boolean checkCondition(SituationalInformation si) {
+        return conditionCheck.apply(si);
     }
 
-    public Supplier<Boolean> getConditionCheck() {
+    public Function<SituationalInformation, Boolean> getConditionCheck() {
         return conditionCheck;
     }
 
-    public void setConditionCheck(Supplier<Boolean> conditionCheck) {
+    public void setConditionCheck(Function<SituationalInformation, Boolean> conditionCheck) {
         this.conditionCheck = conditionCheck;
     }
 
-    public Runnable getAction() {
+    public Consumer<SituationalInformation> getAction() {
         return action;
     }
 
-    public void runAction() {
-        action.run();
+    public void runAction(SituationalInformation si) {
+        action.accept(si);
     }
 
     public String getName() {
