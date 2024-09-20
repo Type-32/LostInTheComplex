@@ -26,6 +26,8 @@
   "itemGroup.litc": "Lost In The Complex",
 
   "gamerule.proximityChat": "Proximity Chat",
-  "gamerule.proximityChatDistance": "Proximity Chat Distance",
-  "gamerule.showPlayerNametags": "Show Player Name Tags"
+  "gamerule.proximityDistance": "Proximity Distance",
+  "gamerule.showPlayerNametags": "Show Player Name Tags",
+  "gamerule.lowHungerThreshold": "Low Hunger Threshold",
+  "gamerule.lowHealthThreshold": "Low Health Threshold"
 }

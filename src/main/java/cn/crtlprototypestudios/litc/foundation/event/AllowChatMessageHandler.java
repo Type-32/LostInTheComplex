@@ -6,7 +6,6 @@ import net.minecraft.network.message.MessageType;
 import net.minecraft.network.message.SentMessage;
 import net.minecraft.network.message.SignedMessage;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
 import net.minecraft.util.math.BlockPos;
@@ -25,7 +24,7 @@ public class AllowChatMessageHandler implements ServerMessageEvents.AllowChatMes
         BlockPos senderPos = sender.getBlockPos();
         List<ServerPlayerEntity> playersWithinProx = new ArrayList<>(sender.getServerWorld().getPlayers().stream().filter(serverPlayerEntity -> {
             double dist = Math.sqrt(Math.pow(serverPlayerEntity.getX() - senderPos.getX(), 2) + Math.pow(serverPlayerEntity.getZ() - senderPos.getZ(), 2));
-            return dist <= sender.getServerWorld().getGameRules().getInt(ModGameRules.PROXIMITY_CHAT_DISTANCE);
+            return dist <= sender.getServerWorld().getGameRules().getInt(ModGameRules.PROXIMITY_DISTANCE);
         }).toList());
 
         playersWithinProx.remove(sender);
